@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_093500) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_234534) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -18,6 +18,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_093500) do
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_accounts_on_email_address", unique: true
+  end
+
+  create_table "cards", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "current_role", null: false
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.integer "run_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_cards_on_run_id"
   end
 
   create_table "runs", force: :cascade do |t|
@@ -40,6 +50,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_093500) do
     t.index ["account_id"], name: "index_sessions_on_account_id"
   end
 
+  add_foreign_key "cards", "runs"
   add_foreign_key "runs", "accounts"
   add_foreign_key "sessions", "accounts"
 end
