@@ -9,6 +9,10 @@ class RunsController < ApplicationController
     @run = Current.account.runs.new
   end
 
+  def show
+    @run = Current.account.runs.find(params[:id])
+  end
+
   def create
     @run = Current.account.runs.new(run_params)
 

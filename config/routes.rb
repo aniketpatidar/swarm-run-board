@@ -3,7 +3,13 @@ Rails.application.routes.draw do
 
   get "sign_in", to: "sessions#new", as: :new_session
   resource :session, only: %i[create destroy]
-  resources :runs, only: %i[index new create]
+  resources :runs, only: %i[index new create show] do
+    resources :cards, only: [] do
+      member do
+        post :advance
+      end
+    end
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

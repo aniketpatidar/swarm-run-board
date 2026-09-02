@@ -1,0 +1,5 @@
+# frozen_string_literal: true
+
+<%= turbo_stream.replace "card_#{@card.id}" do %>
+  <%= render partial: "cards/card", locals: { card: @card, run: @card.run } %>
+<% end %>
