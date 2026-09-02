@@ -1,0 +1,718 @@
+# Engineering Rules
+
+## Startup Tools
+- On startup, procure the latest version of each required quality tool for the project language using the method listed in the language tool table below.
+- For Ruby/Rails projects, tools are installed via Bundler — add them to the project Gemfile and run `bundle install`. Do not fetch Ruby tools from GitHub directly. Run all gem-based tools with `bundle exec <tool>`.
+- For all other languages, resolve each listed repository at its latest available upstream version before installing or building it. Do not rely on stale cached, vendored, or preinstalled copies when a fresh GitHub install/build is possible in the current environment.
+- Language tool table:
+  - Ruby/Rails: install gems via Bundler (`bundle install`); mutation `mutant` + `mutant-minitest` gems — free for open source (`--usage opensource`), commercial use requires a paid subscription ($30/month per developer); confirm licensing with the operator before adding to a commercial project. CRAP/complexity `rubycritic` gem, DRY/smells `reek` gem, security `brakeman` gem, linting `rubocop` gem.
+  - Go: install with `go install`; mutation `github.com/unclebob/mutate4go`, CRAP `github.com/unclebob/crap4go`, DRY `github.com/unclebob/dry4go`.
+  - Clojure: install with Clojure CLI/deps.edn; mutation `github.com/unclebob/clj-mutate`, CRAP `github.com/unclebob/crap4clj`, DRY `github.com/unclebob/dry4clj`.
+  - Java: install with Maven (`mvn`); mutation `github.com/unclebob/mutate4java`, CRAP `github.com/unclebob/crap4java`, DRY `github.com/unclebob/dry4java`.
+
+---
+
+## Language Defaults
+
+When no language is specified for a project, default to Ruby on Rails.
+
+### Ruby/Rails Project Defaults
+
+- Use Rails conventions throughout: MVC, ActiveRecord, idiomatic Ruby 3.x+.
+- Write Minitest tests (no RSpec). Use fixtures. Use Rails System Tests (Capybara/Cuprite) for acceptance specifications.
+- Use Hotwire (Turbo + Stimulus) for frontend interactivity — no separate SPA framework.
+- Follow 37signals/Basecamp Rails patterns for controllers, models, views, and testing (see Architecture Patterns below).
+- Run `bundle exec brakeman` before every handoff.
+- Run `bundle exec rubocop` before every handoff.
+- Write commit messages following Conventional Commits (see Commit Messages below).
+
+### Ruby Language Idioms
+
+**Error handling — Weirich raise/fail convention:**
+- Use `fail` when raising an exception for the first time.
+- Use `raise` only when re-raising a caught exception.
+- Group domain exceptions under a module base error: `class MyApp::Error < StandardError; end`.
+- Use result objects (not exceptions) for expected failure paths.
+
+**Modern Ruby 3.x+ features to prefer:**
+- Pattern matching for complex conditionals.
+- Endless methods for simple one-liners: `def square(x) = x * x`.
+- `Data.define` for immutable value objects.
+- `filter_map` instead of `select + map`.
+- `hash.except(:key)` instead of manual deletion.
+- Numbered block parameters `_1` for short blocks.
+- `# frozen_string_literal: true` at the top of every file.
+
+**Memoization — handle nil/false correctly:**
+```ruby
+# Safe (handles nil/false results)
+def feature_enabled?
+  return @feature_enabled if defined?(@feature_enabled)
+  @feature_enabled = expensive_check
+end
+```
+
+**String building in loops — use `<<` not `+=`:**
+- `+=` is O(n²). Use `<<` or `.join` instead.
+
+**Safe navigation — limit depth:**
+- `user&.profile&.avatar_url` is fine for two links; extract to a method for three or more.
+
+**Method and file layout — breadth-first by abstraction altitude:**
+1. `extend` / `include` / `prepend`
+2. Constants
+3. `attr_*`, class macros (`has_many`, `validates`, `scope`)
+4. `def initialize`
+5. Public methods — highest-level entry points first
+6. `protected`
+7. `private` helpers — grouped by abstraction altitude, not by caller
+
+Within each block, order breadth-first: all stage methods together, then all their helpers together, then helpers of helpers. Do not define a helper directly beneath its single caller.
+
+**Common mistakes to avoid:**
+
+| Mistake | Fix |
+|---------|-----|
+| `raise` for new exceptions | Use `fail`; reserve `raise` for re-raising |
+| `@var \|\|= compute` when result can be nil/false | Use `defined?(@var)` check |
+| String concatenation with `+=` in loops | Use `<<` or `.join` |
+| `rescue Exception` | Rescue `StandardError` instead |
+| Deep `&.` chains (3+ links) | Extract to a method |
+| Missing `# frozen_string_literal: true` | Add to top of every file |
+| Helper defined right beneath its single caller | Group by abstraction altitude |
+| `headers["X-My-Header"]` in a controller | Use `request.headers["X-My-Header"]` — bare `headers` returns the **response** headers, not request headers |
+| `request.remote_ip` without a proxy | Only reliable behind a trusted proxy; without one, any client can spoof `X-Forwarded-For` |
+
+### Non-Ruby Language Defaults
+
+- For Clojure projects, prefer Babashka where possible.
+- For Clojure or Babashka projects, write Speclj specs, not `clojure.test`.
+- Install Speclj with `swarm_tool.sh require speclj`. If missing, `swarm_tool.sh ensure speclj`.
+- If a Speclj spec file changed, run `swarm_tool.sh require speclj-structure-check` (ensure if missing) and check the spec file before running tests.
+- For Java projects, avoid using Maven to run tests; build dedicated test runners and run those instead.
+
+---
+
+## Test-Driven Development (Ruby/Rails)
+
+**The Iron Law: NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.**
+
+Write code before a test? Delete it. Start over. No exceptions.
+
+### RED-GREEN-REFACTOR cycle
+
+**RED — Write one failing test:**
+- One behavior per test.
+- Clear, descriptive name.
+- Use real code — avoid mocks unless truly unavoidable.
+- Run `bin/rails test <file>` and confirm the test FAILS for the expected reason (missing feature, not a typo).
+- If the test passes immediately, you are testing existing behavior — fix the test.
+
+**GREEN — Write minimal code to pass:**
+- Write the simplest code that makes the test pass.
+- Do not add features, refactor other code, or YAGNI-violate beyond the test.
+
+**REFACTOR — Clean up while staying green:**
+- Remove duplication, improve names, extract helpers.
+- Keep all tests green throughout.
+
+### Minitest conventions (37signals style)
+
+- **Minitest + fixtures. No RSpec, no FactoryBot.**
+- Run tests with `bin/rails test`, not `ruby -Itest`. Parallelize: `parallelize(workers: :number_of_processors)`.
+- Test behavior, not implementation details.
+- Tests ship in the same commit/PR as the feature — not before, not later. Security fixes always include a regression test.
+- Never add production complexity for testability (no test-induced design damage).
+
+**Coverage budget — where to spend testing effort:**
+- **Heavy:** model tests (domain invariants, concerns) and controller/integration tests (full request cycle, auth, formats).
+- **Light:** a few system tests for critical happy paths; job tests only for jobs with real logic.
+- **None:** view tests, JS/Stimulus unit tests, exhaustive channel tests. UI behavior is covered indirectly by system tests.
+- Don't duplicate the same behavior assertion at multiple layers.
+
+**Fixtures:**
+- Express relationships by label, not ID.
+- Use ERB for relative timestamps: `created_at: <%= 1.hour.ago %>`.
+- Mirror `app/models` structure in `test/models`: `app/models/card/closeable.rb` ↔ `test/models/card/closeable_test.rb`.
+- UUID PKs: generate deterministic, label-derived UUIDv7s so `.first`/`.last` are stable and runtime records are always newer.
+- Build rich-content fixtures with production code (`ActionText::Attachment.from_attachable(user).to_html`), not hand-written markup.
+
+**Good testing patterns:**
+- `travel_to` for time-based logic.
+- Mock/stub only at boundaries (external APIs, network, time, `SecureRandom`). Use VCR for external HTTP.
+- Test async side effects from model tests with `perform_enqueued_jobs(only: SpecificJob)` and `assert_enqueued_with` — not by unit-testing trivial job classes.
+- Correlated count changes in one assertion: `assert_difference({ -> { card.assignees.count } => -1, -> { Event.count } => +1 })`.
+- Test both response formats where controllers serve them: `as: :turbo_stream` (assert stream targets) and `as: :json` (status, Location header, body).
+- Turbo/broadcast assertions by layer: `assert_turbo_stream_broadcasts` in model tests, `assert_turbo_stream action:, target:` in controller tests.
+- Authorization tests assert the negative space: cross-tenant/role access returns 403/404, not just that allowed access works.
+- Multi-tenant suites: set `Current.account` (and `Current.session`) in setup; provide an `untenanted { }` helper for auth routes; clear `Current` in teardown.
+
+### TDD Red Flags — Stop and start over
+- Code written before a test.
+- Test passes immediately without any implementation.
+- Rationalizing "just this once" or "it's too simple to test".
+- "I already manually tested it" — manual testing is not TDD.
+- Mocks added to avoid fixing a coupling problem — fix the design instead.
+
+### Testing Anti-Patterns to Avoid
+- Testing mock behavior instead of real behavior.
+- Adding test-only methods to production classes.
+- Writing tests after the fact to achieve coverage numbers.
+- Using `sleep` or fixed timeouts instead of condition-based waiting.
+- Over-mocking internal app code.
+- Duplicate tests for the same behavior at multiple layers.
+- Unit tests for one-line job classes or trivial delegations.
+- Hand-rolled HTML strings where production renderers/helpers would stay in sync automatically.
+
+---
+
+## Sandi Metz Rules
+
+Apply these four rules to all Ruby code. They are heuristics — break them with explicit justification only.
+
+1. **Classes ≤ 100 lines** — count real code lines; exclude blank lines, comments, `class`/`end`.
+2. **Methods ≤ 5 lines** — count real code lines; exclude blank lines, comments, `def`/`end`.
+3. **Methods take ≤ 4 parameters** — keyword arguments count; `&block` does not.
+4. **Controllers instantiate only one object per action** — finders don't count.
+
+### Counting examples
+
+```ruby
+def my_method      # don't count
+  line_1           # 1
+  line_2           # 2
+                   # blank — don't count
+  # comment        # don't count
+  line_3           # 3
+end                # don't count
+```
+
+### Refactoring strategies for violations
+
+| Violation | Strategy |
+|-----------|----------|
+| Long class | Extract related methods into new class; apply SRP, Decorator, Strategy |
+| Long method | Extract sub-methods; replace conditionals with polymorphism; guard clauses |
+| Too many params | Parameter Object; Builder; move method to where data lives |
+| Fat controller | Service objects / interactors; Facade; move logic to domain layer |
+
+### RuboCop enforcement
+
+Add to `.rubocop.yml`:
+
+```yaml
+Metrics/ClassLength:
+  Max: 100
+
+Metrics/MethodLength:
+  Max: 5
+  CountAsOne: ['array', 'hash', 'heredoc']
+
+Metrics/ParameterLists:
+  Max: 4
+  MaxOptionalParameters: 3
+```
+
+### Acceptable exceptions
+- `config/routes.rb` and other DSL-heavy configuration files.
+- Database migrations.
+- Generated code.
+- When following the rule would make the code demonstrably less clear — document why.
+
+---
+
+## Architecture Patterns (37signals/Basecamp Style)
+
+Sourced from two places:
+- **Directly verified** patterns confirmed against the public Fizzy source (`basecamp/fizzy`) — these can be trusted.
+- **Inferred** patterns from marckohlbrugge/37signals-skills (community project, LLM-analyzed, unofficial, not endorsed by 37signals) — treat as strong heuristics, not guarantees.
+
+Where these patterns conflict with code already present in the project, prefer the project's existing conventions over this constitution. These rules are defaults, not overrides of deliberate local choices.
+
+Verified directly from Fizzy source (`basecamp/fizzy` as of 2026):
+- `Closure` as a record model; `scope :closed, -> { joins(:closure) }`, `scope :open, -> { where.missing(:closure) }`
+- Concern placement: `Card::Closeable` at `app/models/card/closeable.rb` (nested under model namespace)
+- `belongs_to :creator, class_name: "User", default: -> { Current.user }`
+- `belongs_to :account, default: -> { board.account }`
+- `to_param` returning `number.to_s` for human-friendly URLs
+- UUID primary keys as default (`primary_key_type: :uuid` in generators config)
+- `enqueue_after_transaction_commit = true` in `config/initializers/active_job.rb`
+- `broadcasts_refreshes` with `preview_changed?` guard in `before_update` (`Card::Broadcastable`)
+- `AccountTenanted` prepended to `ApplicationJob` for multi-tenant job context
+- `Current` cascade: `session=` → sets `identity`; `identity=` → sets `user` via `identity.users.find_by(account: account)`
+- `params.expect(...)` for strong params (e.g. `params.expect(card: [:title, :description])`)
+- Scoped lookup: `Current.user.accessible_cards.find_by!(number: params[:id])`
+- `resolve "Comment"` for polymorphic URL generation to parent with anchor — confirmed in routes
+- `resource :closure` as a nested resource — confirmed in routes
+- No Pundit: predicate methods on models (`can_administer_card?`), controllers call `head :forbidden`
+- `scope module:` grouping pattern (e.g. `scope module: :cards`) — confirmed in routes
+- `allow_unauthenticated_access` and `disallow_account_scope` — exact method names confirmed in `Authentication` concern
+- Authorization macros are `ensure_admin` and `ensure_staff` — not `ensure_can_administer` (that name does not exist in Fizzy)
+
+Verified from official Rails guides PR #58617 (rails/rails, new Hotwire guide):
+- `turbo_refreshes_with(method: :morph, scroll: :preserve)` — exact helper signature
+- `turbo_exempts_page_from_cache` — exact helper name
+- `Turbo::StreamsChannel` performs no authorization by default — only verifies signed stream name
+- Custom channel auth pattern using `Turbo::Streams::StreamName` module — official pattern
+- `broadcast_*_later` enqueues `Turbo::Streams::ActionBroadcastJob` or `Turbo::Streams::BroadcastJob`
+- `request.js` / `requestjs-rails` gem for CSRF-safe HTTP requests from Stimulus — official Rails library
+- Stream names are signed with `ActiveSupport::MessageVerifier`
+
+### Core Defaults
+
+- Prefer clear, explicit code over clever abstractions. An abstraction must earn its keep — if you can't point to 3+ variations that need it, inline it.
+- Keep controllers thin; domain behavior lives in models.
+- Prefer Rails conventions and built-ins before adding gems. Ask: can vanilla Rails do this in 50–150 lines? Commonly skipped: Devise, Pundit, ViewComponent, RSpec, FactoryBot, Redis (Solid Queue/Cache/Cable use the DB), service objects, form objects, decorators, GraphQL, SPA frameworks.
+- Prefer write-time computation over expensive read-time composition: counter caches, delegated types, precomputed roll-ups, `dependent: :delete_all` when no callbacks needed.
+- Use `params.expect(...)` for strong params in modern Rails (Rails 8+). For older Rails, use `params.require(:model).permit(:field1, :field2)`.
+- Strong parameters are only enforced at mass assignment time — direct access like `params[:user][:name]` always works regardless of permitted state.
+- In development, set `ActionController::Parameters.action_on_unpermitted_parameters = :raise` to catch missing permit declarations as exceptions rather than silent drops.
+- Let it crash: use bang methods (`create!`); handle exceptions at boundaries only.
+- Fix root causes, not symptoms (e.g. `enqueue_after_transaction_commit` over retry logic for races).
+- Ship tests in the same PR as behavior changes.
+
+### Modeling Patterns
+
+**State as records, not booleans.** Instead of `closed: boolean`, create a `Closure` record with `creator` and timestamps. You get who/when for free, and scoping is trivial:
+
+```ruby
+has_one :closure, dependent: :destroy
+scope :closed, -> { joins(:closure) }
+scope :open,   -> { where.missing(:closure) }
+```
+
+**Slice large models into concerns** named for capability (`Closeable`, `Watchable`, `Assignable`), each self-contained (associations + scopes + methods), ~50–150 lines. Prefer nested modules under the model's namespace (`Card::Closeable` in `app/models/card/closeable.rb`) for domain slices; reserve `app/models/concerns/` for genuinely cross-model behavior. Never extract concerns containing only private methods.
+
+**POROs live in `app/models/`**, not `app/services/`: presentation objects (`Event::Description`), complex operations (`SystemCommenter`), view-context bundles (`User::Filtering`). They are model-adjacent, not controller-adjacent. No service objects.
+
+**Default values via lambdas:**
+```ruby
+belongs_to :creator, class_name: "User", default: -> { Current.user }
+belongs_to :account, default: -> { board.account }
+```
+
+**Current attributes for request context** (`Current.user`, `Current.account`) with cascading setters: assigning `session` resolves `identity`, which resolves `user` for the account.
+
+**Rails shortcuts to prefer:** `normalizes`, `store_accessor`, `delegated_type`, `generates_token_for`, string enums via `enum :status, %w[drafted published].index_by(&:itself)`, `after_save_commit`, `touch: true` chains, `delegate`, `insert_all` for bulk creates.
+
+**Association extensions for bulk domain operations:** define `grant_to`/`revise` on the `has_many` proxy; use `dependent: :delete_all` on join tables with no callbacks.
+
+**Human-friendly URLs:** override `to_param` with a per-tenant `number` rather than exposing raw IDs or UUIDs.
+
+**Callbacks for setup/cleanup only** — not business logic. Keep callback counts low.
+
+### Naming
+
+- Spend time on names — naming is design. `Closure` beats `CardClose`; `Mention` beats `UserReference`.
+- Positive names: `active` not `not_deleted`, `visible` not `not_hidden`.
+- Semantic associations named for role: `belongs_to :creator, class_name: "User"`.
+- Domain-driven: `quota.depleted?` not `quota.over_limit?`.
+- Business-focused scopes: `:active`, `:unassigned` — not SQL-ish `:without_pop`.
+
+### REST and Routing
+
+- Everything is CRUD: turn verbs into nouns. Close → `resource :closure` (POST closes, DELETE reopens). No custom member actions.
+- Singular `resource` for one-per-parent state; `scope module:` to group nested controllers (`Cards::ClosuresController`); shallow nesting for deep hierarchies.
+- Same controllers serve HTML/Turbo/JSON via `respond_to` — no separate API namespace.
+- `resolve "Comment"` for polymorphic URL generation to the parent with an anchor.
+
+### Authorization
+
+- No Pundit or CanCanCan. Simple predicate methods on models: `card.editable_by?(user)`, `Current.user.can_administer_card?(@card)`.
+- Controllers check and `head :forbidden`. Models define what the permission means.
+- Declarative controller macros: `allow_unauthenticated_access`, `disallow_account_scope` (opt out of tenant scope for auth routes), `ensure_admin`, `ensure_staff`.
+
+### Multi-Tenancy
+
+- Scope all tenant data through ownership boundaries. Never `Model.find(params[:id])` in tenant-aware controllers.
+- Middleware extracts the account from `PATH_INFO` into `Current.account`. URL helpers stay tenant-correct automatically.
+- Three-layer auth: **Identity → Session → account-scoped User.** A valid session in account A can never act in account B.
+- `Current` setters cascade: assigning `session` resolves `identity`; assigning `identity` resolves `user` for the current account.
+- Path-scope session cookies (`path: account.slug`) when simultaneous multi-tenant login is needed.
+- Recurring jobs serialize `Current.account` into the payload — never read `Current` inside `perform` without having serialized it at enqueue.
+
+### Hotwire
+
+**Two proven topologies:**
+- **Streams-only (Fizzy style):** no custom ActionCable channels. `turbo_stream_from`, `broadcasts_refreshes` + morph, lazy frames with ETags. Default to this for CRUD-ish apps.
+- **Cable-augmented (Campfire style):** custom channels only for lightweight JSON signals (presence, typing, unread pings) where server-rendered HTML would be wasteful. Durable DOM state still goes through Turbo Streams.
+
+Rule: Turbo Streams for anything that changes the DOM; bare ActionCable only for tiny ephemeral signals.
+
+**Turbo defaults:**
+- Set global morph in the layout: `turbo_refreshes_with method: :morph, scroll: :preserve`.
+- Lazy-load expensive sections: `turbo_frame_tag ..., src:, loading: :lazy` with its own ETag endpoint.
+- `data-turbo-permanent` on elements that must survive navigation/morph (footer trays, in-progress editors).
+- Exempt realtime-heavy pages from Turbo's page cache (`turbo_exempts_page_from_cache`).
+- Optimistic UI: server-renders a `<template>` partial with `$placeholder$` tokens; client clones it before submit; the stream response replaces it.
+
+**Broadcast patterns:**
+- Keep broadcast logic on models (a `Message::Broadcasts` concern), not in controllers.
+- Scope every stream name by tenant/user: `[board.account, :all_boards]`. Stream names are isolation boundaries.
+- Stream names are signed with `ActiveSupport::MessageVerifier` — they cannot be tampered with, but a user who acquires another user's signed stream name could still subscribe to it. Always authorize inside a custom channel when the stream contains sensitive data.
+- `Turbo::StreamsChannel` (the default) performs **no authorization** — it only verifies the signed stream name. For sensitive streams, create a custom channel:
+  ```ruby
+  class PostsChannel < ApplicationCable::Channel
+    extend Turbo::Streams::StreamName
+    include Turbo::Streams::StreamName::ClassMethods
+
+    def subscribed
+      if post&.authorize(current_user)
+        stream_from verified_stream_name_from_params
+      else
+        reject
+      end
+    end
+  end
+  ```
+  Then subscribe with: `<%= turbo_stream_from @post, channel: "PostsChannel" %>`
+- Gate noisy broadcasts on meaningful change: set a flag in `before_update`; broadcast `if: :preview_changed?`.
+- Suppress broadcasts in background jobs: `Model.suppressing_turbo_broadcasts { ... }`.
+- Use `broadcast_*_later` async variants when synchronous broadcasting hurts request latency. `_later` enqueues `Turbo::Streams::ActionBroadcastJob` or `Turbo::Streams::BroadcastJob`; the sync variants block the request.
+
+**Stimulus:**
+- Keep controllers single-purpose; compose multiple small controllers on one element.
+- Prefer targets/values over ad-hoc selectors.
+- Always clean up timers/listeners/subscriptions in `disconnect`.
+- Use event dispatch between controllers (or outlets) instead of tight coupling.
+
+**`request.js` for CSRF-safe JavaScript HTTP requests:**
+- When Stimulus controllers need to make HTTP requests, use the `requestjs-rails` gem (`@rails/request.js` package). It automatically attaches the Rails CSRF token to non-GET requests.
+- Install: `bundle add requestjs-rails && bin/rails requestjs:install`
+- Import path: `import { get, post, put, patch, destroy } from '@rails/request.js'`
+- Usage in a Stimulus controller:
+  ```js
+  import { post } from '@rails/request.js'
+
+  async fetchSuggestions() {
+    const response = await post('/users/suggestions', {
+      body: JSON.stringify({ input: this.inputTarget.value })
+    })
+    if (response.ok) { /* handle response */ }
+  }
+  ```
+- Alternatively, pass a plain object as `body` with `contentType: 'application/json'` — `request.js` will JSON serialize automatically when `contentType` is `application/json`. Without that option, pass a pre-serialized string.
+- `request.js` automatically processes Turbo Stream responses (requires `window.Turbo` to be set, which turbo-rails does automatically since v7.0.0-beta.6).
+
+### Background Jobs
+
+- Job body is one line calling a model method: `def perform(card) = card.notify_recipients`.
+- Jobs are idempotent and safe to retry.
+- `ActiveJob::Base.enqueue_after_transaction_commit = true` in app defaults — fixes job-before-data races at the root.
+- Prefer Solid Queue (database-backed) over Redis for new apps.
+- Naming: `_later` enqueues, plain name does the work, `_now` for an explicit synchronous twin.
+- Capture enqueue-time context as keyword args — do not rely on `Current` at perform time; serialize it.
+- Stagger recurring jobs at odd minutes (12, 27, 50) to avoid synchronized load spikes.
+- Retry transient failures with `retry_on ..., wait: :polynomially_longer`. Do not retry permanent failures — rescue, log at `:info` severity (it's expected), and move on.
+
+### Security Baseline
+
+- Scope all record lookups through the current user or account — never raw `Model.find(id)` in controllers.
+- No user input interpolated into SQL strings.
+- No `html_safe` or `raw` on user-supplied content without explicit sanitization: `"<b>#{h(input)}</b>".html_safe`.
+- CSRF protection enabled — do not disable `protect_from_forgery`.
+- Never HTTP-cache pages that render forms or CSRF tokens.
+- Rate-limit auth and abuse-prone endpoints with Rails built-in `rate_limit`.
+- SSRF defense for any user-influenced URL: resolve DNS, validate destination IP (block loopback/private/link-local/cloud metadata ranges), pin to resolved IP, re-validate on every redirect hop, cap response sizes.
+- Run `bundle exec brakeman -w2` before every handoff; fix all medium and high confidence warnings.
+- Treat IP addresses as untrusted, user-controlled input. Use for informational purposes only, never for access control. `request.ip` returns the direct connection IP. `request.remote_ip` reads `X-Forwarded-For` and is only reliable when sitting behind a trusted proxy — without a proxy, any client can spoof it.
+
+### What 37signals Deliberately Avoids
+
+- Service objects as the default abstraction (prefer fat models and concerns).
+- GraphQL (prefer REST/JSON endpoints or Hotwire).
+- Client-side JS frameworks (prefer Hotwire).
+- Redis (Solid Queue/Cache/Cable use the database).
+- Microservices (the monolith is the default).
+- Pundit/CanCanCan (predicate methods on models).
+- RSpec (Minitest is enough).
+- FactoryBot (fixtures are enough).
+- Tailwind, ViewComponent, Devise.
+- Metaprogramming for 2–3 cases — just write the methods.
+
+### Review Priorities
+
+1. Correctness and data safety.
+2. Multi-tenant/security boundaries.
+3. Maintainability and readability.
+4. Performance hot spots.
+5. Style and polish.
+
+### Performance: N+1 Queries
+
+**Always eager-load associations accessed in a loop.** Accessing `member.team.name` inside `.each` without eager loading fires one query per record.
+
+Three methods — use the right one:
+
+| Method | SQL | Use when |
+|--------|-----|----------|
+| `includes(:assoc)` | Separate queries by default; switches to LEFT JOIN if `.where` or `.order` references the association | Default choice — Rails picks the strategy |
+| `preload(:assoc)` | Always separate queries | Association is not referenced in WHERE/ORDER; large tables where JOIN would be wasteful |
+| `eager_load(:assoc)` | Always LEFT OUTER JOIN | You need to filter or sort by a column on the associated table |
+
+```ruby
+# Avoid: N+1 — one query per member to fetch team
+Member.order(:name).each { |m| m.team.name }
+
+# Fix with includes (safe default)
+Member.includes(:team).order(:name)
+
+# Use eager_load when filtering by association
+Member.eager_load(:team).where(teams: { active: true }).order("teams.name")
+```
+
+Use `bullet` gem in development to detect N+1 queries automatically.
+
+**Always add database indexes on columns used in `WHERE`, `JOIN`, `ORDER BY`, or `GROUP BY` clauses.** Missing indexes are the most common cause of slow queries on large tables.
+
+```ruby
+# Migration
+add_index :members, :name
+add_index :cards, [:account_id, :board_id]  # composite index for common scopes
+```
+
+**`validates :x, uniqueness: true` without a backing unique index is not safe** — it has a race condition under concurrent writes. Always add the index too:
+```ruby
+add_index :users, :email, unique: true
+```
+
+### Always Flag in Code Review
+
+- Unscoped record lookups in tenant-aware flows (`Comment.find(params[:id])`).
+- New dependencies without strong justification.
+- In-memory filtering/sorting that belongs in SQL (`.map(&:name)` where `.pluck(:name)` works).
+- Service objects replacing straightforward model methods.
+- Non-RESTful custom actions when resource modeling is clearer.
+- Boolean state columns where a record would capture who/when.
+- Form pages using HTTP caching (`fresh_when`/etag) — stale CSRF tokens cause 422s.
+- `validates :x, uniqueness: true` without a backing unique index.
+- Unescaped interpolation into `html_safe` strings.
+- Private-only concerns — inline them.
+- Broadcast channels or stream names not scoped by tenant/account.
+
+---
+
+## Systematic Debugging
+
+**The Iron Law: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.**
+
+### Phase 1 — Root cause investigation (mandatory before any fix)
+1. Read the full error message and stack trace. Do not skip past warnings.
+2. Reproduce the failure consistently. If you cannot reproduce it, gather more data — do not guess.
+3. Check recent changes: `git diff`, recent commits, new dependencies, config changes.
+4. For multi-component failures, add diagnostic instrumentation at each component boundary. Run once to gather evidence showing where it breaks before proposing any fix.
+5. Trace the data flow backward from the symptom to the origin. Fix at the source, not the symptom.
+
+### Phase 2 — Pattern analysis
+- Find a working example of similar code in the same codebase.
+- Compare working vs broken — list every difference, however small.
+- Read reference implementations completely before adapting them.
+
+### Phase 3 — Hypothesis and testing
+- State one clear hypothesis: "I think X is the root cause because Y."
+- Make the smallest possible change to test it.
+- One variable at a time. Do not stack fixes.
+- If the fix does not work, form a new hypothesis — do not add more fixes on top.
+
+### Phase 4 — Implementation
+- Write a failing test reproducing the bug first (follow TDD rules above).
+- Implement the single fix addressing the root cause.
+- Verify: test passes, no other tests broken, issue resolved.
+- **If 3 or more fixes have failed**: stop. Question the architecture. Discuss with the operator before attempting more fixes. This is an architectural problem, not an incremental fix problem.
+
+### Debugging red flags — stop and return to Phase 1
+- "Quick fix for now, investigate later."
+- "Just try changing X and see."
+- Proposing solutions before tracing data flow.
+- Stacking multiple changes in one attempt.
+- "One more fix" after two failures.
+- Each fix reveals a new problem in a different place (architectural smell).
+
+---
+
+## Verification Before Completion
+
+**The Iron Law: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.**
+
+Before claiming work is complete, fixed, or passing:
+
+1. **Identify** — what command proves the claim?
+2. **Run** — execute the full command fresh in this turn.
+3. **Read** — full output, exit code, failure count.
+4. **Verify** — does output confirm the claim?
+5. **Only then** — state the result with evidence.
+
+### Verification checklist before every handoff (Ruby/Rails)
+
+- [ ] `bin/rails test` — all tests pass, zero failures, zero errors.
+- [ ] `bundle exec rubocop` — zero offenses (or only agreed exceptions).
+- [ ] `bundle exec brakeman -w2` — no medium or high confidence warnings unaddressed.
+- [ ] `bundle exec reek` — no new smells introduced.
+- [ ] Every new method has a test that was watched to fail before implementation.
+- [ ] No test-only methods added to production classes.
+- [ ] Output is pristine — no unexpected warnings or deprecation notices.
+
+### Claims that require fresh evidence
+
+| Claim | Requires |
+|-------|----------|
+| "Tests pass" | `bin/rails test` output showing 0 failures |
+| "Linter clean" | `bundle exec rubocop` output showing 0 offenses |
+| "No security issues" | `bundle exec brakeman` output |
+| "Bug fixed" | Test that reproduced the bug now passes |
+| "Refactor safe" | Full test suite still green after change |
+
+Do not use "should", "probably", or "seems to" when describing test or verification status. Run it and report what the output says.
+
+---
+
+## Commit Messages (Ruby/Rails)
+
+Follow Conventional Commits. Write the body for a junior Rails developer reading the diff during a debugging session.
+
+### Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+
+| Type | Purpose |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Behavior-preserving restructure |
+| `perf` | Performance improvement |
+| `test` | Test additions or corrections |
+| `docs` | Documentation only |
+| `build` | Dependencies or build system |
+| `ci` | CI configuration |
+| `chore` | Maintenance |
+| `style` | Formatting only, no logic change |
+| `revert` | Revert a previous commit |
+
+### Subject line rules
+- Imperative mood: "Add", "Fix", "Remove", "Update" — not "Added" or "Fixes".
+- Capitalize first letter. No period at end. 70 characters maximum.
+- Scope is optional: `feat(auth):`, `fix(api):`.
+
+### Body rules
+- Blank line between subject and body. Wrap at 72 characters.
+- Explain **WHY** — motivation, problem, user impact.
+- Explain **WHAT changed** briefly — the diff shows the how.
+- Explain **HOW** only when the code or naming does not make it obvious.
+- Do not invent details not supported by context.
+- Write for a junior Rails developer who will read this during a debugging session.
+- `Co-Authored-By: <AI Name> <email>` in footer when AI generated the change. Do not put "Generated by AI" in subject or body.
+
+### Breaking changes
+
+Use `!` in type and `BREAKING CHANGE:` in footer:
+
+```
+feat(api)!: Remove deprecated v1 endpoints
+
+BREAKING CHANGE: v1 endpoints removed. Migrate to v2.
+```
+
+### Common mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| "Changed X to Y" in subject | Imperative: "Fix X" or "Update X" |
+| Body repeats the diff | Explain WHY it changed |
+| Subject over 70 chars | Trim scope or rephrase |
+| "Generated by AI" in body | Use `Co-Authored-By` footer only |
+
+---
+
+## Security (Brakeman)
+
+Run `bundle exec brakeman` before every handoff. Do not ship unaddressed high or medium confidence warnings.
+
+### Confidence levels
+- **High** — fix before handoff, no exceptions.
+- **Medium** — fix before handoff unless explicitly documented as a false positive in `config/brakeman.ignore` with a note explaining why.
+- **Weak** — review; fix if the code path is real.
+
+### Standard scan commands
+
+```bash
+# Default scan
+bundle exec brakeman
+
+# CI gate — fail only on high confidence
+bundle exec brakeman -w3 --no-exit-on-error
+
+# Fail on medium and above (recommended for handoff gate)
+bundle exec brakeman -w2
+
+# Generate HTML report for review
+bundle exec brakeman -o tmp/brakeman-report.html
+
+# Interactively manage false positives
+bundle exec brakeman -I
+```
+
+### False positive management
+- Use `bundle exec brakeman -I` to add notes to `config/brakeman.ignore`.
+- Always add a note explaining why the warning is a false positive. Never ignore blindly.
+- Run `bundle exec brakeman --show-ignored` periodically to re-review ignored warnings.
+
+### Security baseline rules (non-negotiable)
+- Strong parameters in every controller action.
+- All record lookups scoped through current user or account — never raw `Model.find(id)` in controllers.
+- No user input interpolated into SQL strings — use ActiveRecord query methods or parameterized queries.
+- No `html_safe` or `raw` on user-supplied content without explicit sanitization.
+- CSRF protection enabled — do not disable `protect_from_forgery`.
+
+---
+
+## Design And Testability
+- Work in small, reviewable increments.
+- Prefer the simplest design that supports the current behavior and leaves clear options for the next step.
+- Keep tests close to the behavior being changed.
+- Separate testable modules from environmentally unsuitable modules that open GUIs, depend on external devices, throw environment errors, emit system errors, or hang under automated tests. Maximize testable code and minimize the unsuitable boundary.
+- Only testable modules should participate in tools that run tests, including unit tests, acceptance tests, coverage, mutation testing, CRAP analysis, DRY analysis that invokes tests, and property tests.
+- Keep property tests separate from normal verification. Do not include property-test tags in normal unit coverage, Gherkin acceptance mutation, language mutation tools, CRAP, or coverage commands unless the role owns property-test verification or the user explicitly asks for property tests.
+
+---
+
+## Acceptance Pipeline
+- Use github.com/unclebob/Acceptance-Pipeline-Specification for Gherkin acceptance tests.
+- The Acceptance Pipeline Specification supplies `gherkin-parser`, `ir-dry-checker`, and `gherkin-mutator`. Install them with the project-local helper; do not search `$HOME` or run `find` for binaries.
+- At Tool Startup, for each required APS tool, run `swarm_tool.sh require <tool>`. If it is missing, run exactly `swarm_tool.sh ensure <tool>`.
+- Two-arg forms:
+  - `gherkin-parser <feature> ./tmp/<stem>.json`
+  - `ir-dry-checker <ir> ./tmp/<stem>.dry.json`
+- Prefer the Babashka APS tools for `gherkin-parser`, `ir-dry-checker`, `gherkin-mutator`, and related APS support commands.
+- Use Go-based APS tools only if the Babashka APS tools do not work in the current project environment.
+- Project-specific acceptance pipeline components are the acceptance entrypoint generator, acceptance runtime, project step handlers, runner adapter, and convenience scripts.
+- Gherkin acceptance mutation means running `gherkin-mutator` to mutate Gherkin example values.
+- Gherkin acceptance mutation runs must report periodic progress/status so agents can distinguish normal long-running work from a hang.
+
+---
+
+## Verification (General)
+- Before running language, build, or test commands, prefer project-local cache/configuration paths inside the assigned worktree. Avoid default cache locations that write outside the project and may trigger sandbox or permission restrictions.
+- Run constitution tools one at a time. Do not run CRAP, DRY, coverage, language mutation, Gherkin mutation, or structure-check concurrently.
+- Tools that take a worker limit must use `--max-workers 4` or `--workers 4`.
+- Function mutation is differential against the source manifest. Do not pass `--mutate-all`.
+- Gherkin mutation is differential against the feature manifest (`--level hard`). Do not pass `--level full`.
+- Run acceptance generation and acceptance tests sequentially.
+- Avoid running whole-suite language test commands concurrently with acceptance generation.
+- Run the relevant local verification command before handoff whenever the project has one.
+
+---
+
+## Guardrails
+- Do not invent project-local CRAP, DRY, mutation, or coverage proxies. Install and run the constitution tools from the language tool table (e.g. for Ruby/Rails: `rubycritic`, `reek`, `mutant`, `brakeman`, `rubocop` via Bundler; for Clojure: `crap4clj` with cloverage, `dry4clj`, `clj-mutate`, speclj). Do not treat homegrown scripts as substitutes for those tools.
+- Do not edit mutation testing or Gherkin acceptance mutation manifests by hand; allow approved mutation tools to update those manifests as part of their normal runs.
+- Do not commit unrelated local changes or generated artifacts unless required for the task.
+- Before relying on an unfamiliar command, inspect local help or project documentation.
+- Do not claim completion without running and reading fresh verification output (see Verification Before Completion above).

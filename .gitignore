@@ -1,0 +1,11 @@
+/.swarmforge/
+/.worktrees/
+/.bundle
+/log/*
+/tmp/*
+/storage/*
+/db/*.sqlite3
+/db/*.sqlite3-*
+/public/assets
+/public/packs
+/.DS_Store
