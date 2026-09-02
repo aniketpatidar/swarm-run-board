@@ -56,4 +56,42 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :unprocessable_entity
   end
+
+  test "show lists the run's cards in position order" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    run.cards.create!(name: "Run board index", current_role: "coder", position: 1)
+    run.cards.create!(name: "Summary page", current_role: "blocked", position: 2)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#cards" do
+      assert_select "li", text: /Run board index/
+      assert_select "li", text: /coder/
+      assert_select "li", text: /Summary page/
+      assert_select "li", text: /blocked/
+    end
+  end
+
+  test "show returns 404 for a run in another account" do
+    run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
+    get run_path(run)
+    assert_response :not_found
+  end
+
+  test "advance moves a card to the next lane" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
+
+    post advance_run_card_path(run, card), as: :turbo_stream
+    assert_response :success
+    assert_equal "coder", card.reload.current_role
+  end
+
+  test "advance on a card in another account returns 404" do
+    run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
+
+    post advance_run_card_path(run, card), as: :turbo_stream
+    assert_response :not_found
+  end
 end

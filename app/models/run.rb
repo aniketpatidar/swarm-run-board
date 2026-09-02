@@ -2,6 +2,7 @@
 
 class Run < ApplicationRecord
   belongs_to :account
+  has_many :cards, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :run
 
   attribute :started_at, :datetime, default: -> { Time.current }
 
