@@ -13,9 +13,14 @@ class RunListAndCreateTest < ApplicationSystemTestCase
     visit "/"
 
     within("#runs") do
+      assert_selector "th", text: "Started"
       assert_selector "tr", text: "Ship alpha"
       assert_selector "tr", text: "two-pack"
       assert_selector "tr", text: "running"
+      first_run = account.runs.find_by(mission: "Ship alpha")
+      within first("tr", text: "Ship alpha") do
+        assert_selector "time[datetime='#{first_run.started_at.iso8601}']"
+      end
 
       assert_selector "tr", text: "Dogfood board"
       assert_selector "tr", text: "six-pack"

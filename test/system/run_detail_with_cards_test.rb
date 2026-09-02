@@ -8,19 +8,19 @@ class RunDetailWithCardsTest < ApplicationSystemTestCase
     sign_in_as("ops@example.com", "password123")
 
     run = account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack", status: "running", started_at: 1.day.ago)
-    run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
+    run.cards.create!(name: "Run board index", current_role: "done", position: 1)
     run.cards.create!(name: "Run detail page", current_role: "coder", position: 2)
-    run.cards.create!(name: "Summary page", current_role: "architect", position: 3)
+    run.cards.create!(name: "Summary page", current_role: "blocked", position: 3)
 
     visit run_path(run)
 
     within("#cards") do
       assert_selector "li", text: "Run board index"
-      assert_selector "li", text: "specifier"
+      assert_selector "li", text: "done"
       assert_selector "li", text: "Run detail page"
       assert_selector "li", text: "coder"
       assert_selector "li", text: "Summary page"
-      assert_selector "li", text: "architect"
+      assert_selector "li", text: "blocked"
     end
 
     first_card = all("#cards li").first
