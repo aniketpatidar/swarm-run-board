@@ -2,7 +2,7 @@
 
 class RunsController < ApplicationController
   def index
-    @runs = Current.account.runs.order(created_at: :desc)
+    @runs = Current.account.runs.newest_first
   end
 
   def new
