@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+<h1>Run board</h1>
+
+<p><%= link_to "New run", new_run_path %></p>
+
+<table id="runs">
+  <thead>
+    <tr>
+      <th>Mission</th>
+      <th>Pack kind</th>
+      <th>Status</th>
+      <th>Started</th>
+    </tr>
+  </thead>
+  <tbody id="runs_rows">
+    <% @runs.each do |run| %>
+      <%= render run %>
+    <% end %>
+  </tbody>
+</table>

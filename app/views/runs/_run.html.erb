@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+<tr>
+  <td><%= run.mission %></td>
+  <td><%= run.pack_kind %></td>
+  <td><%= run.status %></td>
+  <td><time datetime="<%= run.started_at.iso8601 %>"><%= run.started_at.to_fs(:long) %></time></td>
+</tr>

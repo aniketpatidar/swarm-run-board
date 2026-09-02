@@ -1,0 +1,29 @@
+# frozen_string_literal: true
+
+<h1>New run</h1>
+
+<%= form_with model: @run, url: runs_path do |form| %>
+  <% if @run.errors.any? %>
+    <div id="error_explanation">
+      <ul>
+        <% @run.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :mission, "Mission" %>
+    <%= form.text_area :mission, required: true %>
+  </div>
+
+  <div>
+    <%= form.label :pack_kind, "Pack kind" %>
+    <%= form.select :pack_kind, Run::PACK_KINDS %>
+  </div>
+
+  <%= form.submit "Create run" %>
+<% end %>
+
+<%= link_to "Back to board", root_path %>
