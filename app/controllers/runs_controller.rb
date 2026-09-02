@@ -13,17 +13,25 @@ class RunsController < ApplicationController
     @run = Current.account.runs.new(run_params)
 
     if @run.save
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to root_path, notice: "Run created." }
-      end
+      render_created
     else
       render :new, status: :unprocessable_entity
     end
   end
 
   private
+    def render_created
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to_for_create }
+      end
+    end
+
     def run_params
       params.expect(run: [ :mission, :pack_kind ])
+    end
+
+    def redirect_to_for_create
+      redirect_to root_path, notice: "Run created."
     end
 end

@@ -45,7 +45,9 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     run = @account.runs.last
     assert_equal "running", run.status
     assert_equal "six-pack", run.pack_kind
-    assert response.body.include?("Triage weekend")
+    assert_select "turbo-stream[action=append][target=runs_rows]" do
+      assert_select "tr", text: /Triage weekend/
+    end
   end
 
   test "create with invalid params re-renders the form" do
