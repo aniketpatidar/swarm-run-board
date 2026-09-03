@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+<section id="triage_queue">
+  <h2>Triage queue</h2>
+
+  <ul>
+    <% run.failures.open.each do |failure| %>
+      <%= render partial: "failures/failure", locals: { failure: failure, run: run } %>
+    <% end %>
+  </ul>
+</section>
