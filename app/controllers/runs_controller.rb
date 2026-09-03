@@ -13,6 +13,10 @@ class RunsController < ApplicationController
     @run = Current.account.runs.find(params[:id])
   end
 
+  def summary
+    @run = Current.account.runs.find(params[:id])
+  end
+
   def create
     @run = Current.account.runs.new(run_params)
 
