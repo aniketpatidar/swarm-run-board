@@ -5,12 +5,14 @@ Rails.application.routes.draw do
   resource :session, only: %i[create destroy]
   resources :runs, only: %i[index new create show] do
     resources :cards, only: [] do
-      member do
-        post :advance
-      end
+      resource :advancement, only: %i[create], module: :cards
     end
     resources :agent_messages, only: %i[create]
     resources :cost_entries, only: %i[create]
+    resources :failures, only: [] do
+      resource :resolution, only: %i[create], module: :failures
+      resource :reassignment, only: %i[create], module: :failures
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

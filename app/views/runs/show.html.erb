@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 <h1><%= @run.mission %></h1>
 
 <p>
@@ -30,3 +28,7 @@
 </section>
 
 <%= render partial: "cost_entries/rollup", locals: { run: @run, entry: @run.cost_entries.new } %>
+
+<%= render partial: "failures/triage", locals: { run: @run } %>
+
+<%= render partial: "failures/audit", locals: { run: @run } %>
