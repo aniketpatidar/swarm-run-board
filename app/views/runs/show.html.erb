@@ -10,9 +10,7 @@
 <%= link_to "Back to board", root_path %>
 
 <ul id="cards">
-  <% @run.cards.each do |card| %>
-    <%= render partial: "cards/card", locals: { card: card, run: @run } %>
-  <% end %>
+  <%= render @run.cards %>
 </ul>
 
 <section id="agent_messages">
