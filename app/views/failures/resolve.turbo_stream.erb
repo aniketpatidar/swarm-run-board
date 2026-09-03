@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+<%= turbo_stream.replace "triage_queue" do %>
+  <%= render partial: "failures/triage", locals: { run: @failure.run } %>
+<% end %>
+
+<%= turbo_stream.replace "audit_trail" do %>
+  <%= render partial: "failures/audit", locals: { run: @failure.run } %>
+<% end %>

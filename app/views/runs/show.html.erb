@@ -30,3 +30,7 @@
 </section>
 
 <%= render partial: "cost_entries/rollup", locals: { run: @run } %>
+
+<%= render partial: "failures/triage", locals: { run: @run } %>
+
+<%= render partial: "failures/audit", locals: { run: @run } %>

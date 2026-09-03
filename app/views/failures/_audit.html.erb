@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+<section id="audit_trail">
+  <h2>Audit trail</h2>
+
+  <ul>
+    <% run.audit_entries.order(created_at: :desc).each do |entry| %>
+      <li><%= entry.action %>: <%= entry.subject %></li>
+    <% end %>
+  </ul>
+</section>
