@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+<li id="card_<%= card.id %>">
+  <span class="card-name"><%= card.name %></span>
+  <span class="card-role"><%= card.current_role %></span>
+  <% if card.advanceable? %>
+    <%= button_to "Advance", advance_run_card_path(card.run, card) %>
+  <% end %>
+</li>

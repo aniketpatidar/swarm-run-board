@@ -4,8 +4,8 @@ require "application_system_test_case"
 
 class RunDetailWithCardsTest < ApplicationSystemTestCase
   test "a run detail page lists its cards in workflow order with role and state" do
-    account = Account.create!(name: "Ops", email_address: "ops@example.com", password: "password123")
-    sign_in_as("ops@example.com", "password123")
+    account = accounts(:one)
+    sign_in_as(account.email_address, "password")
 
     run = account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack", status: "running", started_at: 1.day.ago)
     run.cards.create!(name: "Run board index", current_role: "done", position: 1)
@@ -30,8 +30,8 @@ class RunDetailWithCardsTest < ApplicationSystemTestCase
   end
 
   test "moving a card to the next lane updates the run detail state" do
-    account = Account.create!(name: "Ops", email_address: "ops@example.com", password: "password123")
-    sign_in_as("ops@example.com", "password123")
+    account = accounts(:one)
+    sign_in_as(account.email_address, "password")
 
     run = account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack", status: "running", started_at: 1.day.ago)
     card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
@@ -48,9 +48,9 @@ class RunDetailWithCardsTest < ApplicationSystemTestCase
   end
 
   test "a run can only be viewed by its owning account" do
-    account = Account.create!(name: "Ops", email_address: "ops@example.com", password: "password123")
-    other = Account.create!(name: "Other", email_address: "other@example.com", password: "password123")
-    sign_in_as("other@example.com", "password123")
+    account = accounts(:one)
+    other = accounts(:two)
+    sign_in_as(other.email_address, "password")
 
     run = account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack", status: "running", started_at: 1.day.ago)
 

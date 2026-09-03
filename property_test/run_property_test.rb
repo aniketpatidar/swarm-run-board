@@ -1,13 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../test/test_helper"
-require "rantly/property"
-
-class ActiveSupport::TestCase
-  def property_of(&block)
-    Rantly::Property.new(block)
-  end
-end
+require_relative "property_test_helper"
 
 class RunPropertyTest < ActiveSupport::TestCase
   setup do
