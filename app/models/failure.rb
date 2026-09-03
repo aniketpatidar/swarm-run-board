@@ -11,9 +11,18 @@ class Failure < ApplicationRecord
   validates :title, presence: true
   validates :severity, presence: true, inclusion: { in: SEVERITIES }
 
+  def resolve
+    update(resolved_at: Time.current) &&
+      run.audit_entries.create(action: "resolved", subject: title).persisted?
+  end
+
   def resolve!
     update!(resolved_at: Time.current)
     run.audit_entries.create!(action: "resolved", subject: title)
+  end
+
+  def reassign
+    run.audit_entries.create(action: "reassigned", subject: title).persisted?
   end
 
   def reassign!

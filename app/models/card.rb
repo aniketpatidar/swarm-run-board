@@ -11,6 +11,14 @@ class Card < ApplicationRecord
   validates :current_role, presence: true, inclusion: { in: WORKFLOW_ROLES + TERMINAL_STATES }
   validates :position, presence: true
 
+  def advance
+    if (index = WORKFLOW_ROLES.index(current_role))
+      update(current_role: WORKFLOW_ROLES[index + 1] || "done")
+    else
+      false
+    end
+  end
+
   def advance!
     if (index = WORKFLOW_ROLES.index(current_role))
       update!(current_role: WORKFLOW_ROLES[index + 1] || "done")
