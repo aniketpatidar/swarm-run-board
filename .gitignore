@@ -1,6 +1,7 @@
 /.swarmforge/
 /.worktrees/
 /.bundle
+/coverage/*
 /log/*
 /tmp/*
 /storage/*

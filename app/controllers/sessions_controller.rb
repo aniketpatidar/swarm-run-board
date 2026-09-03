@@ -8,12 +8,11 @@ class SessionsController < ApplicationController
   end
 
   def create
-    if account = Account.authenticate_by(params.permit(:email_address, :password))
-      start_new_session_for(account)
-      redirect_to after_authentication_url
-    else
-      redirect_to new_session_path, alert: "Try another email address or password."
-    end
+    account = Account.authenticate_by(params.permit(:email_address, :password))
+    return redirect_to new_session_path, alert: "Try another email address or password." unless account
+
+    start_new_session_for(account)
+    redirect_to after_authentication_url
   end
 
   def destroy

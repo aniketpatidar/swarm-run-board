@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SessionTestHelper
   def sign_in_as(account)
     Current.session = account.sessions.create!

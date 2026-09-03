@@ -52,6 +52,19 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # CRAP/complexity analysis
+  gem "rubycritic", require: false
+
+  # DRY/smells analysis
+  gem "reek", require: false
+
+  # Mutation testing
+  gem "mutant", require: false
+  gem "mutant-minitest", require: false
+
+  # Test coverage
+  gem "simplecov", require: false
 end
 
 group :development do
