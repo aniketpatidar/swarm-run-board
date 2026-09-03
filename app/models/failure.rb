@@ -7,6 +7,7 @@ class Failure < ApplicationRecord
   belongs_to :card, optional: true
 
   scope :open, -> { where(resolved_at: nil) }
+  scope :resolved, -> { where.not(resolved_at: nil) }
 
   validates :title, presence: true
   validates :severity, presence: true, inclusion: { in: SEVERITIES }

@@ -14,16 +14,16 @@
     <dd><%= @run.ended_at&.to_date %></dd>
 
     <dt>Cards completed</dt>
-    <dd><%= @run.cards.where(current_role: "done").count %></dd>
+    <dd><%= @run.completed_cards_count %></dd>
 
     <dt>Total cost</dt>
-    <dd><%= format("%.2f", @run.cost_entries.sum(:cost)) %></dd>
+    <dd><%= format("%.2f", @run.total_cost) %></dd>
 
     <dt>Resolved failures</dt>
-    <dd><%= @run.failures.where.not(resolved_at: nil).count %></dd>
+    <dd><%= @run.resolved_failures_count %></dd>
 
     <dt>Open failures</dt>
-    <dd><%= @run.failures.open.count %></dd>
+    <dd><%= @run.open_failures_count %></dd>
   </dl>
 
   <%= link_to "Back to board", root_path %>

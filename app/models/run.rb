@@ -19,6 +19,22 @@ class Run < ApplicationRecord
     CostRollup.from_entries(cost_entries.select(&:persisted?))
   end
 
+  def completed_cards_count
+    cards.done.count
+  end
+
+  def total_cost
+    cost_entries.sum(:cost)
+  end
+
+  def resolved_failures_count
+    failures.resolved.count
+  end
+
+  def open_failures_count
+    failures.open.count
+  end
+
   validates :mission, presence: true
   validates :pack_kind, inclusion: { in: PACK_KINDS }
   validates :status, inclusion: { in: STATUSES }
