@@ -123,4 +123,22 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     post advance_run_card_path(run, card), as: :turbo_stream
     assert_response :not_found
   end
+
+  test "show lists open failures in the triage queue with a resolved audit trail" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "coder", position: 1)
+    run.failures.create!(title: "Open one", severity: "high", card: card)
+    resolved = run.failures.create!(title: "Fixed one", severity: "low", resolved_at: 1.day.ago)
+    run.audit_entries.create!(action: "resolved", subject: resolved.title)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#triage_queue" do
+      assert_select "li", text: /Open one/
+    end
+    refute_match(/Fixed one/, css_select("#triage_queue").to_html)
+    assert_select "#audit_trail" do
+      assert_select "li", text: /resolved.*Fixed one/
+    end
+  end
 end
