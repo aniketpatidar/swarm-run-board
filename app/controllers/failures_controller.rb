@@ -2,24 +2,36 @@
 
 class FailuresController < ApplicationController
   def resolve
-    run = Current.account.runs.find(params[:run_id])
-    @failure = run.failures.find(params[:id])
-    @failure.resolve!
+    failure.resolve!
+    respond_for
+  end
 
+  def reassign
+    failure.reassign!
+    respond_for
+  end
+
+  private
+
+  def respond_for
     respond_to do |format|
-      format.turbo_stream
+      format.turbo_stream { render turbo_stream: refresh }
       format.html { redirect_to run_path(run) }
     end
   end
 
-  def reassign
-    run = Current.account.runs.find(params[:run_id])
-    @failure = run.failures.find(params[:id])
-    @failure.reassign!
+  def refresh
+    [
+      turbo_stream.replace("triage_queue", partial: "failures/triage", locals: { run: run }),
+      turbo_stream.replace("audit_trail", partial: "failures/audit", locals: { run: run })
+    ]
+  end
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to run_path(run) }
-    end
+  def failure
+    @failure ||= run.failures.find(params[:id])
+  end
+
+  def run
+    @run ||= Current.account.runs.find(params[:run_id])
   end
 end
