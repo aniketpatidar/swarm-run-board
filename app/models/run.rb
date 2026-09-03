@@ -15,6 +15,10 @@ class Run < ApplicationRecord
 
   scope :newest_first, -> { order(created_at: :desc) }
 
+  def cost_rollup
+    CostRollup.from_entries(cost_entries.select(&:persisted?))
+  end
+
   validates :mission, presence: true
   validates :pack_kind, inclusion: { in: PACK_KINDS }
   validates :status, inclusion: { in: STATUSES }

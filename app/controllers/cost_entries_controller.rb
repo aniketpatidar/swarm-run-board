@@ -3,12 +3,8 @@
 class CostEntriesController < ApplicationController
   def create
     load_entry
-
-    if @entry.save
-      render_success
-    else
-      render_failure
-    end
+    @entry.save
+    redirect_or_stream
   end
 
   private
@@ -17,22 +13,15 @@ class CostEntriesController < ApplicationController
       @entry = @run.cost_entries.new(entry_params)
     end
 
-    def render_success
+    def redirect_or_stream
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to run_path(@run) }
+        format.html { redirect_to run_path(@run), status: redirect_status }
       end
     end
 
-    def render_failure
-      respond_to do |format|
-        format.turbo_stream { replace_rollup }
-        format.html { redirect_to run_path(@run), status: :see_other }
-      end
-    end
-
-    def replace_rollup
-      turbo_stream.replace("cost_rollup", "")
+    def redirect_status
+      @entry.persisted? ? :found : :see_other
     end
 
     def entry_params

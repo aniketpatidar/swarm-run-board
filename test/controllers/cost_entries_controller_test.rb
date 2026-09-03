@@ -34,4 +34,21 @@ class CostEntriesControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :not_found
   end
+
+  test "an invalid entry re-renders the rollup with the entry's errors instead of blanking it" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    run.cost_entries.create!(role: "coder", tokens_in: 600, tokens_out: 200, cost: 7.50)
+
+    assert_no_difference -> { run.cost_entries.count } do
+      post run_cost_entries_path(run),
+        params: { cost_entry: { role: "specifier", tokens_in: 400, tokens_out: 100, cost: "" } },
+        as: :turbo_stream
+    end
+
+    body = CGI.unescapeHTML(@response.body)
+    assert_includes body, 'id="cost_rollup"'
+    assert_includes body, "Cost can't be blank"
+    assert_includes body, "7.50"
+    refute_match(/<turbo-stream action="replace" target="cost_rollup">\s*<template>\s*<\//, @response.body)
+  end
 end
