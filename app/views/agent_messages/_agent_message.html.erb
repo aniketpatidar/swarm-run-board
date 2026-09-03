@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+<li id="agent_message_<%= message.id %>">
+  <span class="message-from"><%= message.from_role %></span>
+  &rarr;
+  <span class="message-to"><%= message.to_role %></span>
+  <span class="message-body"><%= message.body %></span>
+  <% if message.card %>
+    <%= link_to message.card.name, run_path(run, anchor: "card_#{message.card.id}") %>
+  <% end %>
+</li>

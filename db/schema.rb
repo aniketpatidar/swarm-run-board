@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_234534) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -18,6 +18,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_234534) do
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_accounts_on_email_address", unique: true
+  end
+
+  create_table "agent_messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.integer "card_id"
+    t.datetime "created_at", null: false
+    t.string "from_role", null: false
+    t.integer "run_id", null: false
+    t.string "to_role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_id"], name: "index_agent_messages_on_card_id"
+    t.index ["run_id"], name: "index_agent_messages_on_run_id"
   end
 
   create_table "cards", force: :cascade do |t|
@@ -50,6 +62,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_234534) do
     t.index ["account_id"], name: "index_sessions_on_account_id"
   end
 
+  add_foreign_key "agent_messages", "cards"
+  add_foreign_key "agent_messages", "runs"
   add_foreign_key "cards", "runs"
   add_foreign_key "runs", "accounts"
   add_foreign_key "sessions", "accounts"
