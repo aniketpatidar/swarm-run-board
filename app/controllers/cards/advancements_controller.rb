@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-class CardsController < ApplicationController
-  def advance
+class Cards::AdvancementsController < ApplicationController
+  def create
     run = Current.account.runs.find(params[:run_id])
-    @card = run.cards.find(params[:id])
+    @card = run.cards.find(params[:card_id])
     @card.advance!
 
     respond_to do |format|

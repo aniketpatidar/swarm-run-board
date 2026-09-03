@@ -5,9 +5,7 @@ Rails.application.routes.draw do
   resource :session, only: %i[create destroy]
   resources :runs, only: %i[index new create show] do
     resources :cards, only: [] do
-      member do
-        post :advance
-      end
+      resource :advancement, only: %i[create], module: :cards
     end
     resources :agent_messages, only: %i[create]
     resources :cost_entries, only: %i[create]
