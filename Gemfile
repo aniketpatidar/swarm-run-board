@@ -77,3 +77,5 @@ group :test do
   gem "capybara"
   gem "cuprite"
 end
+
+gem "rantly", "~> 3.0", group: :test
