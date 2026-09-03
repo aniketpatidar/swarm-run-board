@@ -2,6 +2,6 @@
 
 <% if @message.persisted? %>
   <%= turbo_stream.append "agent_messages_list" do %>
-    <%= render partial: "agent_messages/agent_message", locals: { message: @message, run: @run } %>
+    <%= render @message %>
   <% end %>
 <% end %>

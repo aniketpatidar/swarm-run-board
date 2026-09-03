@@ -17,9 +17,7 @@
   <h2>Agent messages</h2>
 
   <ul id="agent_messages_list">
-    <% @run.agent_messages.each do |message| %>
-      <%= render partial: "agent_messages/agent_message", locals: { message: message, run: @run } %>
-    <% end %>
+    <%= render @run.agent_messages %>
   </ul>
 
   <%= form_with model: [@run, AgentMessage.new] do |form| %>
