@@ -4,6 +4,7 @@ class Run < ApplicationRecord
   belongs_to :account
   has_many :cards, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :run
   has_many :agent_messages, dependent: :destroy
+  has_many :cost_entries, dependent: :destroy
 
   attribute :started_at, :datetime, default: -> { Time.current }
 

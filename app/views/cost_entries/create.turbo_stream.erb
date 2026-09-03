@@ -1,0 +1,5 @@
+# frozen_string_literal: true
+
+<%= turbo_stream.replace "cost_rollup" do %>
+  <%= render partial: "cost_entries/rollup", locals: { run: @run } %>
+<% end %>
