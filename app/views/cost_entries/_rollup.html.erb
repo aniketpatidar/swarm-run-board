@@ -1,25 +1,35 @@
 # frozen_string_literal: true
 
+<% rollup = run.cost_rollup %>
+
 <section id="cost_rollup">
   <h2>Cost rollup</h2>
 
+  <% if entry.errors.any? %>
+    <ul class="rollup-errors">
+      <% entry.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
   <ul>
-    <% run.cost_entries.group(:role).sum(:cost).sort.each do |role, total| %>
-      <li class="role-total"><%= role %>: <%= format("%.2f", total) %></li>
+    <% rollup.per_role.sort_by { |role, _| role.to_s }.each do |role, total| %>
+      <li class="role-total"><%= role || "(run)" %>: <%= format("%.2f", total) %></li>
     <% end %>
   </ul>
 
-  <p class="grand-total"><%= format("%.2f", run.cost_entries.sum(:cost)) %></p>
+  <p class="grand-total"><%= format("%.2f", rollup.grand_total) %></p>
 
-  <%= form_with model: [run, CostEntry.new] do |form| %>
+  <%= form_with model: [run, entry] do |form| %>
     <%= form.label :role, "Role" %>
-    <%= form.text_field :role %>
+    <%= form.text_field :role, value: entry.role %>
     <%= form.label :tokens_in, "Tokens in" %>
-    <%= form.number_field :tokens_in %>
+    <%= form.number_field :tokens_in, value: entry.tokens_in %>
     <%= form.label :tokens_out, "Tokens out" %>
-    <%= form.number_field :tokens_out %>
+    <%= form.number_field :tokens_out, value: entry.tokens_out %>
     <%= form.label :cost, "Cost" %>
-    <%= form.text_field :cost %>
+    <%= form.text_field :cost, value: entry.cost %>
     <%= form.submit "Add cost" %>
   <% end %>
 </section>

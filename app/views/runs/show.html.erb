@@ -29,4 +29,4 @@
   <% end %>
 </section>
 
-<%= render partial: "cost_entries/rollup", locals: { run: @run } %>
+<%= render partial: "cost_entries/rollup", locals: { run: @run, entry: @run.cost_entries.new } %>
