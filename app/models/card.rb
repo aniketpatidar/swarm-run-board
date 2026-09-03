@@ -5,6 +5,7 @@ class Card < ApplicationRecord
   TERMINAL_STATES = %w[done blocked].freeze
 
   belongs_to :run
+  has_many :agent_messages, dependent: :destroy
 
   validates :name, presence: true
   validates :current_role, presence: true, inclusion: { in: WORKFLOW_ROLES + TERMINAL_STATES }
