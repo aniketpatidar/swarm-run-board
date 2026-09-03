@@ -1,0 +1,30 @@
+# frozen_string_literal: true
+
+<section id="run_summary">
+  <h1><%= @run.mission %></h1>
+
+  <dl>
+    <dt>Status</dt>
+    <dd><%= @run.status == "finished" ? "Completed" : @run.status.titleize %></dd>
+
+    <dt>Started</dt>
+    <dd><%= @run.started_at.to_date %></dd>
+
+    <dt>Ended</dt>
+    <dd><%= @run.ended_at&.to_date %></dd>
+
+    <dt>Cards completed</dt>
+    <dd><%= @run.completed_cards_count %></dd>
+
+    <dt>Total cost</dt>
+    <dd><%= format("%.2f", @run.total_cost) %></dd>
+
+    <dt>Resolved failures</dt>
+    <dd><%= @run.resolved_failures_count %></dd>
+
+    <dt>Open failures</dt>
+    <dd><%= @run.open_failures_count %></dd>
+  </dl>
+
+  <%= link_to "Back to board", root_path %>
+</section>

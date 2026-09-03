@@ -2,23 +2,17 @@
 
 class CostEntriesController < ApplicationController
   def create
-    load_entry
+    @run = Current.account.runs.find(params[:run_id])
+    @entry = @run.cost_entries.new(entry_params)
     @entry.save
-    redirect_or_stream
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to run_path(@run), status: redirect_status }
+    end
   end
 
   private
-    def load_entry
-      @run = Current.account.runs.find(params[:run_id])
-      @entry = @run.cost_entries.new(entry_params)
-    end
-
-    def redirect_or_stream
-      respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_to run_path(@run), status: redirect_status }
-      end
-    end
 
     def redirect_status
       @entry.persisted? ? :found : :see_other
