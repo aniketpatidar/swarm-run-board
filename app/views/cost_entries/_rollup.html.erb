@@ -1,0 +1,25 @@
+# frozen_string_literal: true
+
+<section id="cost_rollup">
+  <h2>Cost rollup</h2>
+
+  <ul>
+    <% run.cost_entries.group(:role).sum(:cost).sort.each do |role, total| %>
+      <li class="role-total"><%= role %>: <%= format("%.2f", total) %></li>
+    <% end %>
+  </ul>
+
+  <p class="grand-total"><%= format("%.2f", run.cost_entries.sum(:cost)) %></p>
+
+  <%= form_with model: [run, CostEntry.new] do |form| %>
+    <%= form.label :role, "Role" %>
+    <%= form.text_field :role %>
+    <%= form.label :tokens_in, "Tokens in" %>
+    <%= form.number_field :tokens_in %>
+    <%= form.label :tokens_out, "Tokens out" %>
+    <%= form.number_field :tokens_out %>
+    <%= form.label :cost, "Cost" %>
+    <%= form.text_field :cost %>
+    <%= form.submit "Add cost" %>
+  <% end %>
+</section>
