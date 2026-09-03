@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_03_100122) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_101413) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -78,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_100122) do
   create_table "runs", force: :cascade do |t|
     t.integer "account_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "ended_at"
     t.text "mission"
     t.string "pack_kind", default: "two-pack", null: false
     t.datetime "started_at", null: false

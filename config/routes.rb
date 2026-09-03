@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   get "sign_in", to: "sessions#new", as: :new_session
   resource :session, only: %i[create destroy]
+  get "runs/:id/summary", to: "runs#summary", as: :run_summary
   resources :runs, only: %i[index new create show] do
     resources :cards, only: [] do
       member do
