@@ -87,6 +87,20 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "show renders per-role cost totals and a grand total" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    run.cost_entries.create!(role: "specifier", tokens_in: 400, tokens_out: 100, cost: 5.00)
+    run.cost_entries.create!(role: "coder", tokens_in: 600, tokens_out: 200, cost: 7.50)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#cost_rollup" do
+      assert_select ".role-total", text: /specifier.*5.00/
+      assert_select ".role-total", text: /coder.*7.50/
+      assert_select ".grand-total", text: "12.50"
+    end
+  end
+
   test "show returns 404 for a run in another account" do
     run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
     get run_path(run)

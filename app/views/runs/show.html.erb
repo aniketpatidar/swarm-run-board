@@ -28,3 +28,5 @@
     <%= form.submit "Post message" %>
   <% end %>
 </section>
+
+<%= render partial: "cost_entries/rollup", locals: { run: @run, entry: @run.cost_entries.new } %>

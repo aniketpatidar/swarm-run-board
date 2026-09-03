@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+<% form_entry = @entry.persisted? ? @run.cost_entries.new : @entry %>
+
+<%= turbo_stream.replace "cost_rollup" do %>
+  <%= render partial: "cost_entries/rollup", locals: { run: @run, entry: form_entry } %>
+<% end %>
