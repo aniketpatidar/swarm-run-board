@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       end
     end
     resources :agent_messages, only: %i[create]
+    resources :cost_entries, only: %i[create]
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

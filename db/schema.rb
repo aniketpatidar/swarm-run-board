@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_093917) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -42,6 +42,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
     t.index ["run_id"], name: "index_cards_on_run_id"
   end
 
+  create_table "cost_entries", force: :cascade do |t|
+    t.decimal "cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.string "role"
+    t.integer "run_id", null: false
+    t.integer "tokens_in", default: 0, null: false
+    t.integer "tokens_out", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_cost_entries_on_run_id"
+  end
+
   create_table "runs", force: :cascade do |t|
     t.integer "account_id", null: false
     t.datetime "created_at", null: false
@@ -65,6 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
   add_foreign_key "agent_messages", "cards"
   add_foreign_key "agent_messages", "runs"
   add_foreign_key "cards", "runs"
+  add_foreign_key "cost_entries", "runs"
   add_foreign_key "runs", "accounts"
   add_foreign_key "sessions", "accounts"
 end
