@@ -26,6 +26,15 @@ When no language is specified for a project, default to Ruby on Rails.
 - Run `bundle exec rubocop` before every handoff.
 - Write commit messages following Conventional Commits (see Commit Messages below).
 
+### CI Parity — run every CI check locally before handoff
+
+The project's `.github/workflows/ci.yml` defines the pipeline gates. Reproduce every one of them locally so a failure surfaces in development, not at pipeline time. When a check cannot be run locally (e.g. a service you cannot start), say so explicitly in the handoff.
+
+- Identify the CI gates by reading the project's workflow files (e.g. `.github/workflows/ci.yml`). Do not assume a fixed list — CI evolves.
+- For each `run: <command>` step, execute the same command locally and confirm it exits 0.
+- Every binstub a CI step invokes (e.g. `bin/importmap`, `bin/brakeman`, `bin/bundler-audit`, `bin/rubocop`, `bin/rails`) must exist and be executable. If a referenced binstub is missing, create it (Rails binstubs are generated with their installer, e.g. `bin/rails importmap:install`) before handoff.
+- Common Rails CI gates to reproduce: `bin/brakeman --no-pager`, `bin/bundler-audit`, `bin/importmap audit`, `bin/rubocop -f github`, `bin/rails db:test:prepare test`, `bin/rails db:test:prepare test:system`.
+
 ### Ruby Language Idioms
 
 **Error handling — Weirich raise/fail convention:**
@@ -548,6 +557,8 @@ Before claiming work is complete, fixed, or passing:
 - [ ] `bundle exec rubocop` — zero offenses (or only agreed exceptions).
 - [ ] `bundle exec brakeman -w2` — no medium or high confidence warnings unaddressed.
 - [ ] `bundle exec reek` — no new smells introduced.
+- [ ] Every CI gate in the project's workflow is reproduced locally and exits 0 (see CI Parity above). Run `bin/importmap audit` (and any other JS/security scans CI runs) — not just unit tests.
+- [ ] Every binstub referenced by a CI step exists and is executable.
 - [ ] Every new method has a test that was watched to fail before implementation.
 - [ ] No test-only methods added to production classes.
 - [ ] Output is pristine — no unexpected warnings or deprecation notices.
