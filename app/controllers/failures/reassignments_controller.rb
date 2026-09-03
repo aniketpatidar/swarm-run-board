@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
-class FailuresController < ApplicationController
-  def resolve
-    failure.resolve!
-    respond_for
-  end
-
-  def reassign
+class Failures::ReassignmentsController < ApplicationController
+  def create
     failure.reassign!
     respond_for
   end
@@ -28,7 +23,7 @@ class FailuresController < ApplicationController
   end
 
   def failure
-    @failure ||= run.failures.find(params[:id])
+    @failure ||= run.failures.find(params[:failure_id])
   end
 
   def run

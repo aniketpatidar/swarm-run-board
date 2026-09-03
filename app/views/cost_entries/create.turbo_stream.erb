@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 <% form_entry = @entry.persisted? ? @run.cost_entries.new : @entry %>
 
 <%= turbo_stream.replace "cost_rollup" do %>

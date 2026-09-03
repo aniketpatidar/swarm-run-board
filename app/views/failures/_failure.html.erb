@@ -1,11 +1,9 @@
-# frozen_string_literal: true
-
 <li id="failure_<%= failure.id %>">
   <span class="failure-title"><%= failure.title %></span>
   <span class="failure-severity"><%= failure.severity %></span>
   <% if failure.card %>
     <%= link_to failure.card.name, run_path(run, anchor: "card_#{failure.card.id}") %>
   <% end %>
-  <%= button_to "Resolve", resolve_run_failure_path(run, failure) %>
-  <%= button_to "Reassign", reassign_run_failure_path(run, failure) %>
+  <%= button_to "Resolve", run_failure_resolution_path(run, failure) %>
+  <%= button_to "Reassign", run_failure_reassignment_path(run, failure) %>
 </li>

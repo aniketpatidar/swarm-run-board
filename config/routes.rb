@@ -12,10 +12,8 @@ Rails.application.routes.draw do
     resources :agent_messages, only: %i[create]
     resources :cost_entries, only: %i[create]
     resources :failures, only: [] do
-      member do
-        post :resolve
-        post :reassign
-      end
+      resource :resolution, only: %i[create], module: :failures
+      resource :reassignment, only: %i[create], module: :failures
     end
   end
 
