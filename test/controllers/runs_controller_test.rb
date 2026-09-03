@@ -72,6 +72,21 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "show lists the run's agent messages with from, to, body, and card link" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "coder", position: 1)
+    run.agent_messages.create!(from_role: "specifier", to_role: "coder", body: "Spec is ready.", card: card)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#agent_messages" do
+      assert_select "li", text: /specifier/
+      assert_select "li", text: /coder/
+      assert_select "li", text: /Spec is ready\./
+      assert_select "a", text: "Run board index"
+    end
+  end
+
   test "show returns 404 for a run in another account" do
     run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
     get run_path(run)

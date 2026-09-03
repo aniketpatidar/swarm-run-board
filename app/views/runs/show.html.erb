@@ -12,3 +12,21 @@
 <ul id="cards">
   <%= render @run.cards %>
 </ul>
+
+<section id="agent_messages">
+  <h2>Agent messages</h2>
+
+  <ul id="agent_messages_list">
+    <% @run.agent_messages.each do |message| %>
+      <%= render partial: "agent_messages/agent_message", locals: { message: message, run: @run } %>
+    <% end %>
+  </ul>
+
+  <%= form_with model: [@run, AgentMessage.new] do |form| %>
+    <%= form.label :body, "Message" %>
+    <%= form.text_area :body %>
+    <%= form.label :to_role, "To role" %>
+    <%= form.select :to_role, Card::WORKFLOW_ROLES, include_blank: true %>
+    <%= form.submit "Post message" %>
+  <% end %>
+</section>
