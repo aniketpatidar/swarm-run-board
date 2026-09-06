@@ -64,3 +64,6 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "rubycritic", "~> 5.0", groups: [:development, :test]
+gem "reek", "~> 6.5", groups: [:development, :test]
