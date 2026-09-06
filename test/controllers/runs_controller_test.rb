@@ -173,4 +173,12 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
       assert_select "li", text: /resolved.*Fixed one/
     end
   end
+
+
+  test "summary is reachable from the run detail page" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "two-pack", status: "finished")
+    get run_path(run)
+    assert_response :success
+    assert_select "a[href=?]", run_summary_path(run), text: "Summary"
+  end
 end

@@ -6,6 +6,7 @@
 </p>
 
 <%= link_to "Back to board", root_path %>
+<%= link_to "Summary", run_summary_path(@run) %>
 
 <ul id="cards">
   <%= render @run.cards %>

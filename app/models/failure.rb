@@ -7,9 +7,18 @@ class Failure < ApplicationRecord
   belongs_to :card, optional: true
 
   scope :open, -> { where(resolved_at: nil).order(:created_at, :id) }
+  scope :resolved, -> { where.not(resolved_at: nil) }
 
   validates :title, presence: true
   validates :severity, presence: true, inclusion: { in: SEVERITIES }
+
+  def resolve(at: nil)
+    return true if resolved_at?
+
+    transaction do
+      update(resolved_at: at || Time.current) && audit("resolved").persisted?
+    end
+  end
 
   def resolve!(at: nil)
     return self if resolved_at?
@@ -19,6 +28,10 @@ class Failure < ApplicationRecord
       audit("resolved")
     end
     self
+  end
+
+  def reassign
+    run.audit_entries.create(action: "reassigned", subject: title).persisted?
   end
 
   def reassign!

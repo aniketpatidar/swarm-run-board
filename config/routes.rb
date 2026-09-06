@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   get "sign_in", to: "sessions#new", as: :new_session
   resource :session, only: %i[create destroy]
   resources :runs, only: %i[index new create show] do
+    resource :summary, only: %i[show], module: :runs
     resources :cards, only: [] do
       resource :advancement, only: %i[create], module: :cards
     end
