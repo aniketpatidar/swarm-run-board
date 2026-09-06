@@ -1,0 +1,108 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_101413) do
+  create_table "accounts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email_address", null: false
+    t.string "name"
+    t.string "password_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email_address"], name: "index_accounts_on_email_address", unique: true
+  end
+
+  create_table "agent_messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.integer "card_id"
+    t.datetime "created_at", null: false
+    t.string "from_role", null: false
+    t.integer "run_id", null: false
+    t.string "to_role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_id"], name: "index_agent_messages_on_card_id"
+    t.index ["run_id"], name: "index_agent_messages_on_run_id"
+  end
+
+  create_table "audit_entries", force: :cascade do |t|
+    t.string "action", null: false
+    t.datetime "created_at", null: false
+    t.integer "run_id", null: false
+    t.string "subject", null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_audit_entries_on_run_id"
+  end
+
+  create_table "cards", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "current_role", null: false
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.integer "run_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_cards_on_run_id"
+  end
+
+  create_table "cost_entries", force: :cascade do |t|
+    t.decimal "cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.string "role"
+    t.integer "run_id", null: false
+    t.integer "tokens_in", default: 0, null: false
+    t.integer "tokens_out", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_cost_entries_on_run_id"
+  end
+
+  create_table "failures", force: :cascade do |t|
+    t.integer "card_id"
+    t.datetime "created_at", null: false
+    t.datetime "resolved_at"
+    t.integer "run_id", null: false
+    t.string "severity", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_id"], name: "index_failures_on_card_id"
+    t.index ["run_id", "resolved_at"], name: "index_failures_on_run_id_and_resolved_at"
+    t.index ["run_id"], name: "index_failures_on_run_id"
+  end
+
+  create_table "runs", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "ended_at"
+    t.text "mission"
+    t.string "pack_kind", default: "two-pack", null: false
+    t.datetime "started_at", null: false
+    t.string "status", default: "running", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_runs_on_account_id"
+  end
+
+  create_table "sessions", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.index ["account_id"], name: "index_sessions_on_account_id"
+  end
+
+  add_foreign_key "agent_messages", "cards"
+  add_foreign_key "agent_messages", "runs"
+  add_foreign_key "audit_entries", "runs"
+  add_foreign_key "cards", "runs"
+  add_foreign_key "cost_entries", "runs"
+  add_foreign_key "failures", "cards"
+  add_foreign_key "failures", "runs"
+  add_foreign_key "runs", "accounts"
+  add_foreign_key "sessions", "accounts"
+end

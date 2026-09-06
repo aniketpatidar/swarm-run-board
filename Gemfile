@@ -18,7 +18,7 @@ gem "stimulus-rails"
 gem "jbuilder"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -52,6 +52,19 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # CRAP/complexity analysis
+  gem "rubycritic", require: false
+
+  # DRY/smells analysis
+  gem "reek", require: false
+
+  # Mutation testing
+  gem "mutant", require: false
+  gem "mutant-minitest", require: false
+
+  # Test coverage
+  gem "simplecov", require: false
 end
 
 group :development do
@@ -62,8 +75,7 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
-  gem "selenium-webdriver"
+  gem "cuprite"
 end
 
-gem "rubycritic", "~> 5.0", groups: [:development, :test]
-gem "reek", "~> 6.5", groups: [:development, :test]
+gem "rantly", "~> 3.0", group: :test

@@ -1,0 +1,7 @@
+<li id="card_<%= card.id %>">
+  <span class="card-name"><%= card.name %></span>
+  <span class="card-role"><%= card.current_role %></span>
+  <% if card.advanceable? %>
+    <%= button_to "Advance", run_card_advancement_path(card.run, card) %>
+  <% end %>
+</li>

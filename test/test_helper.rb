@@ -1,6 +1,12 @@
+# frozen_string_literal: true
+
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "simplecov"
+require_relative "test_helpers/session_test_helper"
+
+SimpleCov.start("rails") unless ENV["MUTANT"] == "1"
 
 module ActiveSupport
   class TestCase
@@ -13,3 +19,5 @@ module ActiveSupport
     # Add more helper methods to be used by all tests here...
   end
 end
+
+Dir[File.expand_path("support/**/*.rb", __dir__)].sort.each { |file| require file }

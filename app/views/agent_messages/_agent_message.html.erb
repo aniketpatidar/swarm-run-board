@@ -1,0 +1,9 @@
+<li id="agent_message_<%= agent_message.id %>">
+  <span class="message-from"><%= agent_message.from_role %></span>
+  &rarr;
+  <span class="message-to"><%= agent_message.to_role %></span>
+  <span class="message-body"><%= agent_message.body %></span>
+  <% if agent_message.card %>
+    <%= link_to agent_message.card.name, run_path(agent_message.run, anchor: "card_#{agent_message.card.id}") %>
+  <% end %>
+</li>

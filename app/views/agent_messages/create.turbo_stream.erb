@@ -1,0 +1,5 @@
+<% if @message.persisted? %>
+  <%= turbo_stream.append "agent_messages_list" do %>
+    <%= render @message %>
+  <% end %>
+<% end %>
