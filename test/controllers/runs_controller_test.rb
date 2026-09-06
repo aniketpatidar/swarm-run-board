@@ -143,7 +143,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
     card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
 
-    post advance_run_card_path(run, card), as: :turbo_stream
+    post run_card_advancement_path(run, card), as: :turbo_stream
     assert_response :success
     assert_equal "coder", card.reload.current_role
   end
@@ -152,7 +152,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
     card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
 
-    post advance_run_card_path(run, card), as: :turbo_stream
+    post run_card_advancement_path(run, card), as: :turbo_stream
     assert_response :not_found
   end
 
