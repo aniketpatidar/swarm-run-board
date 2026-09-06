@@ -12,19 +12,19 @@ class Failure < ApplicationRecord
   validates :title, presence: true
   validates :severity, presence: true, inclusion: { in: SEVERITIES }
 
-  def resolve(at: nil)
+  def resolve(at: Time.current)
     return true if resolved_at?
 
     transaction do
-      update(resolved_at: at || Time.current) && audit("resolved").persisted?
+      update(resolved_at: at) && audit("resolved").persisted?
     end
   end
 
-  def resolve!(at: nil)
+  def resolve!(at: Time.current)
     return self if resolved_at?
 
     transaction do
-      update!(resolved_at: at || Time.current)
+      update!(resolved_at: at)
       audit("resolved")
     end
     self

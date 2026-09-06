@@ -6,7 +6,7 @@ require "rails/test_help"
 require "simplecov"
 require_relative "test_helpers/session_test_helper"
 
-SimpleCov.start("rails")
+SimpleCov.start("rails") unless ENV["MUTANT"] == "1"
 
 module ActiveSupport
   class TestCase

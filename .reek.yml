@@ -1,0 +1,9 @@
+detectors:
+  IrresponsibleModule:
+    enabled: false
+  InstanceVariableAssumption:
+    enabled: false
+  TooManyStatements:
+    max_statements: 10
+  ControlParameter:
+    enabled: false

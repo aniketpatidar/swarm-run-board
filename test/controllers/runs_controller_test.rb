@@ -57,6 +57,38 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "index lists the current account's runs newest first" do
+    old = @account.runs.create!(mission: "Older run", pack_kind: "two-pack")
+    new = @account.runs.create!(mission: "Newer run", pack_kind: "four-pack")
+    old.update_column(:created_at, 2.hours.ago)
+
+    get root_path
+
+    assert_operator @response.body.index(new.mission), :<, @response.body.index(old.mission)
+  end
+
+  test "new shows the create form for the current account" do
+    get new_run_path
+    assert_response :success
+    assert_select "form[action='/runs']" do
+      assert_select "textarea[name='run[mission]']"
+      assert_select "select[name='run[pack_kind]']"
+    end
+  end
+
+  test "create redirects to the board after a successful HTML submit" do
+    assert_difference -> { @account.runs.count } => 1 do
+      post runs_path, params: { run: { mission: "HTML submit", pack_kind: "four-pack" } }
+    end
+
+    assert_redirected_to root_path
+    follow_redirect!
+    assert_select ".notice", text: "Run created."
+    assert_select "#runs" do
+      assert_select "tr", text: /HTML submit/
+    end
+  end
+
   test "show lists the run's cards in position order" do
     run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
     run.cards.create!(name: "Run board index", current_role: "coder", position: 1)
@@ -107,6 +139,22 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "advance moves a card to the next lane" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
+
+    post run_card_advancement_path(run, card), as: :turbo_stream
+    assert_response :success
+    assert_equal "coder", card.reload.current_role
+  end
+
+  test "advance on a card in another account returns 404" do
+    run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
+
+    post run_card_advancement_path(run, card), as: :turbo_stream
+    assert_response :not_found
+  end
 
   test "show lists open failures in the triage queue with a resolved audit trail" do
     run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
