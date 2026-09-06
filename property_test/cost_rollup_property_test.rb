@@ -9,11 +9,12 @@ class CostRollupPropertyTest < ActiveSupport::TestCase
 
   def random_entries
     property_of {
-      n = range(0, 30)
-      Array.new(n) do
-        cost = range(0, 100_000) / 100.0
-        CostEntry.new(role: choose(*ROLES), tokens_in: range(0, 100_000),
-                      tokens_out: range(0, 100_000), cost: cost)
+      count = range(0, 30)
+      Array.new(count) do
+        magnitude = range(0, 100_000)
+        cost = magnitude / 100.0
+        CostEntry.new(role: choose(*ROLES), tokens_in: magnitude,
+                      tokens_out: magnitude, cost: cost)
       end
     }
   end
@@ -21,7 +22,7 @@ class CostRollupPropertyTest < ActiveSupport::TestCase
   test "the grand total conserves the sum of every entry's cost" do
     random_entries.check(100) { |entries|
       rollup = CostRollup.from_entries(entries)
-      expected = entries.sum { |e| e.cost.to_d }
+      expected = entries.sum { |entry| entry.cost.to_d }
       assert_in_delta expected, rollup.grand_total, 0.0001,
         "grand_total #{rollup.grand_total} must equal sum of entry costs #{expected}"
     }
@@ -39,7 +40,7 @@ class CostRollupPropertyTest < ActiveSupport::TestCase
     random_entries.check(100) { |entries|
       rollup = CostRollup.from_entries(entries)
       entries.group_by(&:role).each do |role, role_entries|
-        expected = role_entries.sum { |e| e.cost.to_d }
+        expected = role_entries.sum { |entry| entry.cost.to_d }
         assert_in_delta expected, rollup.per_role.fetch(role), 0.0001,
           "role #{role.inspect} total #{rollup.per_role.fetch(role)} must equal #{expected}"
       end

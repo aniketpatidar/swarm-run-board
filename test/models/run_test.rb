@@ -35,4 +35,9 @@ class RunTest < ActiveSupport::TestCase
     assert_equal "running", run.status
     assert_equal "two-pack", run.pack_kind
   end
+
+  test "ended_at can be set for a finished run" do
+    run = @account.runs.create!(mission: "Ship alpha", status: "finished", ended_at: 1.day.ago)
+    assert_equal 1.day.ago.to_date, run.ended_at.to_date
+  end
 end

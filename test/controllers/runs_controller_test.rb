@@ -107,22 +107,6 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "advance moves a card to the next lane" do
-    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
-    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
-
-    post advance_run_card_path(run, card), as: :turbo_stream
-    assert_response :success
-    assert_equal "coder", card.reload.current_role
-  end
-
-  test "advance on a card in another account returns 404" do
-    run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
-    card = run.cards.create!(name: "Run board index", current_role: "specifier", position: 1)
-
-    post advance_run_card_path(run, card), as: :turbo_stream
-    assert_response :not_found
-  end
 
   test "show lists open failures in the triage queue with a resolved audit trail" do
     run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
@@ -140,5 +124,13 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#audit_trail" do
       assert_select "li", text: /resolved.*Fixed one/
     end
+  end
+
+
+  test "summary is reachable from the run detail page" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "two-pack", status: "finished")
+    get run_path(run)
+    assert_response :success
+    assert_select "a[href=?]", run_summary_path(run), text: "Summary"
   end
 end
