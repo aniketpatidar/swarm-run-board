@@ -11,6 +11,7 @@ class CardPropertyTest < ActiveSupport::TestCase
   test "a card built with any name, position, and a known role is valid" do
     property_of {
       name = array(range(1, 80)) { choose(*(("a".."z").to_a + [ " ", "-" ])) }.join
+      name += "a" if name.strip.empty?
       [ name, choose(*Card::WORKFLOW_ROLES + Card::TERMINAL_STATES), range(1, 50) ]
     }.check(50) { |(name, role, position)|
       card = @run.cards.new(name: name, current_role: role, position: position)
@@ -60,6 +61,7 @@ class CardPropertyTest < ActiveSupport::TestCase
   test "a persisted card round-trips its attributes unchanged" do
     property_of {
       name = array(range(1, 80)) { choose(*(("a".."z").to_a + [ " " ])) }.join
+      name += "a" if name.strip.empty?
       [ name, choose(*Card::WORKFLOW_ROLES + Card::TERMINAL_STATES), range(1, 50) ]
     }.check(50) { |(name, role, position)|
       card = @run.cards.create!(name: name, current_role: role, position: position)
