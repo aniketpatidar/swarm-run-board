@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_03_100123) do
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -32,6 +32,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
     t.index ["run_id"], name: "index_agent_messages_on_run_id"
   end
 
+  create_table "audit_entries", force: :cascade do |t|
+    t.string "action", null: false
+    t.datetime "created_at", null: false
+    t.integer "run_id", null: false
+    t.string "subject", null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_audit_entries_on_run_id"
+  end
+
   create_table "cards", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "current_role", null: false
@@ -42,9 +51,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
     t.index ["run_id"], name: "index_cards_on_run_id"
   end
 
+  create_table "cost_entries", force: :cascade do |t|
+    t.decimal "cost", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.string "role"
+    t.integer "run_id", null: false
+    t.integer "tokens_in", default: 0, null: false
+    t.integer "tokens_out", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["run_id"], name: "index_cost_entries_on_run_id"
+  end
+
+  create_table "failures", force: :cascade do |t|
+    t.integer "card_id"
+    t.datetime "created_at", null: false
+    t.datetime "resolved_at"
+    t.integer "run_id", null: false
+    t.string "severity", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_id"], name: "index_failures_on_card_id"
+    t.index ["run_id", "resolved_at"], name: "index_failures_on_run_id_and_resolved_at"
+    t.index ["run_id"], name: "index_failures_on_run_id"
+  end
+
   create_table "runs", force: :cascade do |t|
     t.integer "account_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "ended_at"
     t.text "mission"
     t.string "pack_kind", default: "two-pack", null: false
     t.datetime "started_at", null: false
@@ -64,7 +98,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_092635) do
 
   add_foreign_key "agent_messages", "cards"
   add_foreign_key "agent_messages", "runs"
+  add_foreign_key "audit_entries", "runs"
   add_foreign_key "cards", "runs"
+  add_foreign_key "cost_entries", "runs"
+  add_foreign_key "failures", "cards"
+  add_foreign_key "failures", "runs"
   add_foreign_key "runs", "accounts"
   add_foreign_key "sessions", "accounts"
 end

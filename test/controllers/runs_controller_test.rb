@@ -119,6 +119,20 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "show renders per-role cost totals and a grand total" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    run.cost_entries.create!(role: "specifier", tokens_in: 400, tokens_out: 100, cost: 5.00)
+    run.cost_entries.create!(role: "coder", tokens_in: 600, tokens_out: 200, cost: 7.50)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#cost_rollup" do
+      assert_select ".role-total", text: /specifier.*5.00/
+      assert_select ".role-total", text: /coder.*7.50/
+      assert_select ".grand-total", text: "12.50"
+    end
+  end
+
   test "show returns 404 for a run in another account" do
     run = accounts(:two).runs.create!(mission: "Other", pack_kind: "two-pack")
     get run_path(run)
@@ -140,5 +154,23 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
 
     post advance_run_card_path(run, card), as: :turbo_stream
     assert_response :not_found
+  end
+
+  test "show lists open failures in the triage queue with a resolved audit trail" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "four-pack")
+    card = run.cards.create!(name: "Run board index", current_role: "coder", position: 1)
+    run.failures.create!(title: "Open one", severity: "high", card: card)
+    resolved = run.failures.create!(title: "Fixed one", severity: "low", resolved_at: 1.day.ago)
+    run.audit_entries.create!(action: "resolved", subject: resolved.title)
+
+    get run_path(run)
+    assert_response :success
+    assert_select "#triage_queue" do
+      assert_select "li", text: /Open one/
+    end
+    refute_match(/Fixed one/, css_select("#triage_queue").to_html)
+    assert_select "#audit_trail" do
+      assert_select "li", text: /resolved.*Fixed one/
+    end
   end
 end
