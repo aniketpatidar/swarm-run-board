@@ -52,4 +52,18 @@ class FailureTest < ActiveSupport::TestCase
     assert_nil failure.reload.resolved_at
     assert_equal 1, @run.failures.open.count
   end
+  test "resolve non-bang marks the failure resolved and out of the queue" do
+    failure = @run.failures.create!(title: "Canceled run", severity: "low")
+    assert failure.resolve
+    assert_not_nil failure.reload.resolved_at
+    assert_equal 0, @run.failures.open.count
+    assert failure.resolve
+  end
+
+  test "reassign non-bang leaves the failure open in the queue" do
+    failure = @run.failures.create!(title: "Stuck card", severity: "medium")
+    assert failure.reassign
+    assert_nil failure.reload.resolved_at
+    assert_equal 1, @run.failures.open.count
+  end
 end
