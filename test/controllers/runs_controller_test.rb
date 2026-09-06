@@ -56,4 +56,36 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :unprocessable_entity
   end
+
+  test "index lists the current account's runs newest first" do
+    old = @account.runs.create!(mission: "Older run", pack_kind: "two-pack")
+    new = @account.runs.create!(mission: "Newer run", pack_kind: "four-pack")
+    old.update_column(:created_at, 2.hours.ago)
+
+    get root_path
+
+    assert_operator @response.body.index(new.mission), :<, @response.body.index(old.mission)
+  end
+
+  test "new shows the create form for the current account" do
+    get new_run_path
+    assert_response :success
+    assert_select "form[action='/runs']" do
+      assert_select "textarea[name='run[mission]']"
+      assert_select "select[name='run[pack_kind]']"
+    end
+  end
+
+  test "create redirects to the board after a successful HTML submit" do
+    assert_difference -> { @account.runs.count } => 1 do
+      post runs_path, params: { run: { mission: "HTML submit", pack_kind: "four-pack" } }
+    end
+
+    assert_redirected_to root_path
+    follow_redirect!
+    assert_select ".notice", text: "Run created."
+    assert_select "#runs" do
+      assert_select "tr", text: /HTML submit/
+    end
+  end
 end
