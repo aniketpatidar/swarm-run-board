@@ -1,9 +1,15 @@
-<li id="agent_message_<%= agent_message.id %>">
-  <span class="message-from"><%= agent_message.from_role %></span>
-  &rarr;
-  <span class="message-to"><%= agent_message.to_role %></span>
-  <span class="message-body"><%= agent_message.body %></span>
-  <% if agent_message.card %>
-    <%= link_to agent_message.card.name, run_path(agent_message.run, anchor: "card_#{agent_message.card.id}") %>
+<%# frozen_string_literal: true %>
+
+<%= render(JetUi::List::ItemComponent.new(id: "agent_message_#{agent_message.id}")) do %>
+  <%= render(JetUi::List::ContentComponent.new) do %>
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <%= render(JetUi::Badge::Component.new(variant: :info)) { agent_message.from_role } %>
+      <span aria-hidden="true" class="text-muted-foreground">&rarr;</span>
+      <%= render(JetUi::Badge::Component.new) { agent_message.to_role } %>
+      <% if agent_message.card %>
+        <%= link_to agent_message.card.name, run_path(agent_message.run, anchor: "card_#{agent_message.card.id}"), class: "text-sm font-medium text-(--color-link) hover:text-(--color-link-hover)" %>
+      <% end %>
+    </div>
+    <p class="mt-1 text-sm text-muted-foreground break-words"><%= agent_message.body %></p>
   <% end %>
-</li>
+<% end %>

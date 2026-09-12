@@ -1,28 +1,64 @@
+<%# frozen_string_literal: true %>
+
+<%= render(JetUi::Header::Component.new) do %>
+  <%= render(JetUi::Header::HeadingComponent.new) do %>
+    <%= render(JetUi::Header::TitleComponent.new) { @run.mission } %>
+    <%= render(JetUi::Header::SubtitleComponent.new) { "Summary" } %>
+  <% end %>
+
+  <%= render(JetUi::Header::ActionsComponent.new) do %>
+    <%= render(JetUi::Btn::Component.new(variant: :ghost, url: root_path)) { "Back to board" } %>
+  <% end %>
+<% end %>
+
 <section id="run_summary">
-  <h1><%= @run.mission %></h1>
+  <%= render(JetUi::Card::Component.new) do %>
+    <%= render(JetUi::Card::HeaderComponent.new) do %>
+      <%= render(JetUi::Card::TitleComponent.new) do %>
+        <%= @run.status == "finished" ? "Completed" : @run.status.titleize %>
+      <% end %>
+      <%= render(JetUi::Card::SubtitleComponent.new) do %>
+        <%= @run.pack_kind %> run
+      <% end %>
+    <% end %>
 
-  <dl>
-    <dt>Status</dt>
-    <dd><%= @run.status == "finished" ? "Completed" : @run.status.titleize %></dd>
+    <%= render(JetUi::Card::BodyComponent.new) do %>
+      <dl class="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Status</dt>
+          <dd class="font-medium"><%= @run.status == "finished" ? "Completed" : @run.status.titleize %></dd>
+        </div>
 
-    <dt>Started</dt>
-    <dd><%= @run.started_at.to_date %></dd>
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Started</dt>
+          <dd class="font-medium"><%= @run.started_at.to_date %></dd>
+        </div>
 
-    <dt>Ended</dt>
-    <dd><%= @run.ended_at&.to_date %></dd>
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Ended</dt>
+          <dd class="font-medium"><%= @run.ended_at&.to_date || "—" %></dd>
+        </div>
 
-    <dt>Cards completed</dt>
-    <dd><%= @run.completed_cards_count %></dd>
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Cards completed</dt>
+          <dd class="font-medium"><%= @run.completed_cards_count %></dd>
+        </div>
 
-    <dt>Total cost</dt>
-    <dd><%= format("%.2f", @run.total_cost) %></dd>
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Total cost</dt>
+          <dd class="font-medium"><%= format("%.2f", @run.total_cost) %></dd>
+        </div>
 
-    <dt>Resolved failures</dt>
-    <dd><%= @run.resolved_failures_count %></dd>
+        <div class="flex items-center justify-between gap-4 border-b border-(--color-border) py-2.5">
+          <dt class="text-sm text-muted-foreground">Resolved failures</dt>
+          <dd class="font-medium"><%= @run.resolved_failures_count %></dd>
+        </div>
 
-    <dt>Open failures</dt>
-    <dd><%= @run.open_failures_count %></dd>
-  </dl>
-
-  <%= link_to "Back to board", root_path %>
+        <div class="flex items-center justify-between gap-4 py-2.5">
+          <dt class="text-sm text-muted-foreground">Open failures</dt>
+          <dd class="font-medium"><%= @run.open_failures_count %></dd>
+        </div>
+      </dl>
+    <% end %>
+  <% end %>
 </section>

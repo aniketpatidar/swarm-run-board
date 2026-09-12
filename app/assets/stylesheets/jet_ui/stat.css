@@ -1,0 +1,23 @@
+@layer theme, base, components, utilities;
+
+@layer components {
+  .stat {
+    @apply border border-border rounded-card p-6;
+  }
+
+  .stat__label {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+
+  .stat__value {
+    @apply text-2xl font-bold text-foreground mt-1;
+  }
+
+  .stat__description {
+    @apply text-sm mt-2 flex items-center gap-1 text-muted-foreground;
+  }
+
+  .stat__description--success { @apply text-success; }
+  .stat__description--warning { @apply text-warning; }
+  .stat__description--error   { @apply text-destructive; }
+}

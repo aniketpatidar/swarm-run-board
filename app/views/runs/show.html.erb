@@ -1,35 +1,77 @@
-<h1><%= @run.mission %></h1>
+<%# frozen_string_literal: true %>
 
-<p>
-  <strong>Pack kind:</strong> <%= @run.pack_kind %>
-  <strong>Status:</strong> <%= @run.status %>
-</p>
-
-<%= link_to "Back to board", root_path %>
-<%= link_to "Summary", run_summary_path(@run) %>
-
-<ul id="cards">
-  <%= render @run.cards %>
-</ul>
-
-<section id="agent_messages">
-  <h2>Agent messages</h2>
-
-  <ul id="agent_messages_list">
-    <%= render @run.agent_messages %>
-  </ul>
-
-  <%= form_with model: [@run, AgentMessage.new] do |form| %>
-    <%= form.label :body, "Message" %>
-    <%= form.text_area :body %>
-    <%= form.label :to_role, "To role" %>
-    <%= form.select :to_role, Card::WORKFLOW_ROLES, include_blank: true %>
-    <%= form.submit "Post message" %>
+<%= render(JetUi::Header::Component.new) do %>
+  <%= render(JetUi::Header::HeadingComponent.new) do %>
+    <%= render(JetUi::Header::TitleComponent.new) { @run.mission } %>
+    <%= render(JetUi::Header::SubtitleComponent.new) do %>
+      <%= render(JetUi::Badge::Component.new(variant: run_status_badge_variant(@run.status))) { @run.status } %>
+      <span class="header__subtitle-meta">
+        <%= @run.pack_kind %>
+        &middot;
+        started <%= @run.started_at.to_fs(:long) %>
+      </span>
+    <% end %>
   <% end %>
-</section>
 
-<%= render partial: "cost_entries/rollup", locals: { run: @run, entry: @run.cost_entries.new } %>
+  <%= render(JetUi::Header::ActionsComponent.new) do %>
+    <%= render(JetUi::Btn::Component.new(variant: :ghost, url: root_path)) { "Back to board" } %>
+    <%= render(JetUi::Btn::Component.new(url: run_summary_path(@run))) { "Summary" } %>
+  <% end %>
+<% end %>
 
-<%= render partial: "failures/triage", locals: { run: @run } %>
+<div id="run_detail" class="space-y-6">
+  <%= render(JetUi::Card::Component.new) do %>
+    <%= render(JetUi::Card::HeaderComponent.new) do %>
+      <%= render(JetUi::Card::TitleComponent.new) { "Cards" } %>
+      <%= render(JetUi::Card::SubtitleComponent.new) do %>
+        <%= @run.completed_cards_count %> of <%= @run.cards.count %> completed
+      <% end %>
+    <% end %>
 
-<%= render partial: "failures/audit", locals: { run: @run } %>
+    <%= render(JetUi::Card::BodyComponent.new) do %>
+      <%= render(JetUi::List::Component.new(variant: :divided, id: "cards")) do %>
+        <%= render @run.cards %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <section id="agent_messages">
+    <%= render(JetUi::Card::Component.new) do %>
+      <%= render(JetUi::Card::HeaderComponent.new) do %>
+        <%= render(JetUi::Card::TitleComponent.new) { "Agent messages" } %>
+      <% end %>
+
+      <%= render(JetUi::Card::BodyComponent.new) do %>
+        <%= render(JetUi::List::Component.new(variant: :divided, id: "agent_messages_list")) do %>
+          <%= render @run.agent_messages %>
+        <% end %>
+
+        <div class="mt-4">
+          <%= form_with model: [@run, AgentMessage.new], class: "grid gap-4 sm:grid-cols-2" do |form| %>
+            <div class="field sm:col-span-2">
+              <%= form.label :body, "Message", class: "block text-sm font-medium mb-1.5" %>
+              <%= form.text_area :body, placeholder: "Spec is ready. Card moved to coder.", rows: 3,
+                class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+            </div>
+
+            <div class="field">
+              <%= form.label :to_role, "To role", class: "block text-sm font-medium mb-1.5" %>
+              <%= form.select :to_role, Card::WORKFLOW_ROLES, { include_blank: true },
+                class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+            </div>
+
+            <div class="sm:self-end">
+              <%= form.button "Post message", class: "btn btn-default btn-md" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+
+  <%= render partial: "cost_entries/rollup", locals: { run: @run, entry: @run.cost_entries.new } %>
+
+  <%= render partial: "failures/triage", locals: { run: @run } %>
+
+  <%= render partial: "failures/audit", locals: { run: @run } %>
+</div>

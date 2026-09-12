@@ -1,13 +1,29 @@
 <%# frozen_string_literal: true %>
 
-<h1>Sign in</h1>
+<div class="mx-auto w-full max-w-sm">
+  <%= render(JetUi::Card::Component.new) do %>
+    <%= render(JetUi::Card::HeaderComponent.new) do %>
+      <%= render(JetUi::Card::TitleComponent.new) { "Sign in" } %>
+    <% end %>
 
-<% if flash[:notice] %>
-  <p class="notice"><%= flash[:notice] %></p>
-<% end %>
+    <%= render(JetUi::Card::BodyComponent.new) do %>
+      <%= form_with url: session_path, class: "grid gap-4" do |form| %>
+        <div class="field">
+          <%= form.label :email_address, "Email address", class: "block text-sm font-medium mb-1.5" %>
+          <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username",
+            placeholder: "Email address",
+            class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+        </div>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Email address" %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
+        <div class="field">
+          <%= form.label :password, "Password", class: "block text-sm font-medium mb-1.5" %>
+          <%= form.password_field :password, required: true, autocomplete: "current-password",
+            placeholder: "Password", maxlength: 72,
+            class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+        </div>
+
+        <%= form.submit "Sign in", class: "btn btn-default btn-md" %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

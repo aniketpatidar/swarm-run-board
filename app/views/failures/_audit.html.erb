@@ -1,9 +1,23 @@
-<section id="audit_trail">
-  <h2>Audit trail</h2>
+<%# frozen_string_literal: true %>
 
-  <ul>
-    <% run.audit_entries.order(created_at: :desc, id: :desc).each do |entry| %>
-      <li><%= entry.action %>: <%= entry.subject %></li>
+<%= render(JetUi::Card::Component.new(id: "audit_trail")) do %>
+  <%= render(JetUi::Card::HeaderComponent.new) do %>
+    <%= render(JetUi::Card::TitleComponent.new) { "Audit trail" } %>
+  <% end %>
+
+  <%= render(JetUi::Card::BodyComponent.new) do %>
+    <% if run.audit_entries.any? %>
+      <%= render(JetUi::List::Component.new(variant: :divided)) do %>
+        <% run.audit_entries.order(created_at: :desc, id: :desc).each do |entry| %>
+          <li class="list__item">
+            <p class="text-sm break-words">
+              <strong class="font-semibold"><%= entry.action %></strong>: <%= entry.subject %>
+            </p>
+          </li>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-muted-foreground">No audit entries yet.</p>
     <% end %>
-  </ul>
-</section>
+  <% end %>
+<% end %>

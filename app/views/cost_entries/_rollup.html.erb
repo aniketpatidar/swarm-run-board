@@ -1,33 +1,69 @@
+<%# frozen_string_literal: true %>
+
 <% rollup = run.cost_rollup %>
 
-<section id="cost_rollup">
-  <h2>Cost rollup</h2>
+<%= render(JetUi::Card::Component.new(id: "cost_rollup")) do %>
+  <%= render(JetUi::Card::HeaderComponent.new) do %>
+    <%= render(JetUi::Card::TitleComponent.new) { "Cost rollup" } %>
+  <% end %>
 
-  <% if entry.errors.any? %>
-    <ul class="rollup-errors">
-      <% entry.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
+  <%= render(JetUi::Card::BodyComponent.new) do %>
+    <% if entry.errors.any? %>
+      <%= render(JetUi::Alert::Component.new(variant: :error, class: "mb-4")) do %>
+        <ul class="rollup-errors mt-2 list-disc pl-5">
+          <% entry.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
       <% end %>
-    </ul>
-  <% end %>
-
-  <ul>
-    <% rollup.per_role.sort_by { |role, _| role.to_s }.each do |role, total| %>
-      <li class="role-total"><%= role || "(run)" %>: <%= format("%.2f", total) %></li>
     <% end %>
-  </ul>
 
-  <p class="grand-total"><%= format("%.2f", rollup.grand_total) %></p>
+    <% if rollup.per_role.any? %>
+      <ul class="space-y-1">
+        <% rollup.per_role.sort_by { |role, _| role.to_s }.each do |role, total| %>
+          <li class="role-total flex items-center justify-between gap-4 text-sm">
+            <span class="text-muted-foreground"><%= role || "(run)" %></span>
+            <span class="font-medium tabular-nums"><%= format("%.2f", total) %></span>
+          </li>
+        <% end %>
+      </ul>
 
-  <%= form_with model: [run, entry] do |form| %>
-    <%= form.label :role, "Role" %>
-    <%= form.text_field :role, value: entry.role %>
-    <%= form.label :tokens_in, "Tokens in" %>
-    <%= form.number_field :tokens_in, value: entry.tokens_in %>
-    <%= form.label :tokens_out, "Tokens out" %>
-    <%= form.number_field :tokens_out, value: entry.tokens_out %>
-    <%= form.label :cost, "Cost" %>
-    <%= form.text_field :cost, value: entry.cost %>
-    <%= form.submit "Add cost" %>
+      <div class="mt-3 flex items-center justify-between gap-4 border-t border-(--color-border) pt-3">
+        <span class="text-sm font-medium">Grand total</span>
+        <p class="grand-total font-semibold tabular-nums"><%= format("%.2f", rollup.grand_total) %></p>
+      </div>
+    <% else %>
+      <p class="text-sm text-muted-foreground">No cost entries yet.</p>
+    <% end %>
+
+    <%= form_with model: [run, entry], class: "mt-4 grid gap-4 sm:grid-cols-2" do |form| %>
+      <div class="field">
+        <%= form.label :role, "Role", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.text_field :role, value: entry.role,
+          class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+      </div>
+
+      <div class="field">
+        <%= form.label :tokens_in, "Tokens in", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.number_field :tokens_in, value: entry.tokens_in,
+          class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+      </div>
+
+      <div class="field">
+        <%= form.label :tokens_out, "Tokens out", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.number_field :tokens_out, value: entry.tokens_out,
+          class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+      </div>
+
+      <div class="field">
+        <%= form.label :cost, "Cost", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.text_field :cost, value: entry.cost,
+          class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+      </div>
+
+      <div class="sm:col-span-2">
+        <%= form.submit "Add cost", class: "btn btn-default btn-md" %>
+      </div>
+    <% end %>
   <% end %>
-</section>
+<% end %>

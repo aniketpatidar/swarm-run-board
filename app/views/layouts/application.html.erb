@@ -20,16 +20,29 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <% if flash[:notice] %>
-      <p class="notice"><%= flash[:notice] %></p>
+  <body class="min-h-dvh flex flex-col bg-zinc-50 font-sans antialiased">
+    <%= render(JetUi::Navbar::Component.new) do %>
+      <%= render(JetUi::Navbar::BrandComponent.new) do %>
+        <%= link_to "Swarm Run Board", root_path, class: "font-semibold tracking-tight" %>
+      <% end %>
+
+      <%= render(JetUi::Navbar::ActionsComponent.new) do %>
+        <% if authenticated? %>
+          <%= render(JetUi::Btn::Component.new(variant: :outline, size: :sm, url: session_path, method: :delete)) do %>
+            Sign out
+          <% end %>
+        <% end %>
+      <% end %>
     <% end %>
-    <% if flash[:alert] %>
-      <p class="alert"><%= flash[:alert] %></p>
-    <% end %>
-    <%= yield %>
+
+    <%= jet_ui.flash(messages: flash) %>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 space-y-6 sm:px-6 lg:px-8">
+      <%= yield %>
+    </main>
   </body>
 </html>

@@ -1,9 +1,22 @@
-<section id="triage_queue">
-  <h2>Triage queue</h2>
+<%# frozen_string_literal: true %>
 
-  <ul>
-    <% run.failures.open.each do |failure| %>
-      <%= render partial: "failures/failure", locals: { failure: failure, run: run } %>
+<%= render(JetUi::Card::Component.new(id: "triage_queue")) do %>
+  <%= render(JetUi::Card::HeaderComponent.new) do %>
+    <%= render(JetUi::Card::TitleComponent.new) { "Triage queue" } %>
+    <%= render(JetUi::Card::SubtitleComponent.new) do %>
+      <%= run.failures.open.count %> open
     <% end %>
-  </ul>
-</section>
+  <% end %>
+
+  <%= render(JetUi::Card::BodyComponent.new) do %>
+    <% if run.failures.open.any? %>
+      <%= render(JetUi::List::Component.new(variant: :divided)) do %>
+        <% run.failures.open.each do |failure| %>
+          <%= render partial: "failures/failure", locals: { failure: failure, run: run } %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-muted-foreground">No open failures.</p>
+    <% end %>
+  <% end %>
+<% end %>

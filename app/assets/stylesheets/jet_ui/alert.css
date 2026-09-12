@@ -1,0 +1,27 @@
+@layer theme, base, components, utilities;
+
+@layer components {
+  .alert {
+    @apply grid items-center gap-x-2 px-3.5 py-3 rounded-card border text-sm;
+  }
+
+  .alert:has(.alert__icon) {
+    grid-template-columns: auto 1fr;
+  }
+
+  /* Variants */
+  .alert-default { @apply bg-muted border-border text-foreground; }
+  .alert-info    { @apply bg-info-soft border-info-border text-info-soft-foreground; }
+  .alert-error   { @apply bg-destructive-soft border-destructive-border text-destructive-soft-foreground; }
+  .alert-success { @apply bg-success-soft border-success-border text-success-soft-foreground; }
+  .alert-warning { @apply bg-warning-soft border-warning-border text-warning-soft-foreground; }
+
+  /* Subcomponents */
+  .alert__title       { @apply font-semibold; }
+  .alert__icon        { @apply flex items-center; }
+  .alert__description { }
+
+  .alert__icon ~ .alert__description {
+    grid-column-start: 2;
+  }
+}

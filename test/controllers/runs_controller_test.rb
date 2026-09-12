@@ -83,10 +83,74 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
     follow_redirect!
-    assert_select ".notice", text: "Run created."
+    assert_select ".flash-item__message", text: "Run created."
     assert_select "#runs" do
       assert_select "tr", text: /HTML submit/
     end
+  end
+
+  test "show renders the run header with the mission and status badge" do
+    run = @account.runs.create!(mission: "Ship alpha", pack_kind: "two-pack", status: "running")
+
+    get run_path(run)
+    assert_response :success
+    assert_select ".header__title", text: /Ship alpha/
+    assert_select ".badge", text: "running"
+  end
+
+  test "index shows an empty board prompt when there are no runs" do
+    @account.runs.destroy_all
+
+    get root_path
+    assert_response :success
+    assert_select "#runs_empty", text: /No runs yet/
+  end
+
+  test "index hides the empty board prompt once a run exists" do
+    @account.runs.destroy_all
+    @account.runs.create!(mission: "First run", pack_kind: "two-pack")
+
+    get root_path
+    assert_response :success
+    assert_select "#runs"
+    assert_no_match %r{id="runs_empty"}, @response.body
+  end
+
+  test "index wraps the run board in a responsive scroller" do
+    @account.runs.create!(mission: "Ship alpha", pack_kind: "two-pack")
+
+    get root_path
+    assert_response :success
+    assert_select ".scroller-x > #runs"
+  end
+
+  test "index shows a status badge for each run" do
+    @account.runs.create!(mission: "Ship alpha", pack_kind: "two-pack", status: "running")
+    @account.runs.create!(mission: "Done run", pack_kind: "four-pack", status: "finished")
+
+    get root_path
+    assert_response :success
+    assert_select ".badge", text: "running"
+    assert_select ".badge", text: "finished"
+  end
+
+  test "index renders the app navbar" do
+    get root_path
+    assert_response :success
+    assert_select ".navbar"
+    assert_select ".navbar__brand", text: /Swarm Run Board/
+  end
+
+  test "create removes the empty board prompt when the board was empty" do
+    @account.runs.destroy_all
+
+    get root_path
+    assert_select "#runs_empty"
+
+    post runs_path, params: { run: { mission: "First run", pack_kind: "two-pack" } }, as: :turbo_stream
+    assert_response :success
+    assert_select "turbo-stream[action=remove][target=runs_empty]"
+    assert_select "turbo-stream[action=append][target=runs_rows]"
   end
 
   test "show lists the run's cards in position order" do
@@ -96,7 +160,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
 
     get run_path(run)
     assert_response :success
-    assert_select "#cards" do
+    assert_select "ul#cards.list" do
       assert_select "li", text: /Run board index/
       assert_select "li", text: /coder/
       assert_select "li", text: /Summary page/
@@ -112,6 +176,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     get run_path(run)
     assert_response :success
     assert_select "#agent_messages" do
+      assert_select "ul#agent_messages_list.list"
       assert_select "li", text: /specifier/
       assert_select "li", text: /coder/
       assert_select "li", text: /Spec is ready\./
@@ -127,6 +192,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     get run_path(run)
     assert_response :success
     assert_select "#cost_rollup" do
+      assert_select ".card__title", text: "Cost rollup"
       assert_select ".role-total", text: /specifier.*5.00/
       assert_select ".role-total", text: /coder.*7.50/
       assert_select ".grand-total", text: "12.50"
@@ -167,10 +233,13 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#triage_queue" do
       assert_select "li", text: /Open one/
+      assert_select ".card__title", text: "Triage queue"
+      assert_select ".badge", text: "high"
     end
     refute_match(/Fixed one/, css_select("#triage_queue").to_html)
     assert_select "#audit_trail" do
       assert_select "li", text: /resolved.*Fixed one/
+      assert_select ".card__title", text: "Audit trail"
     end
   end
 

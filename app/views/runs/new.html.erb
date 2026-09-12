@@ -1,29 +1,42 @@
 <%# frozen_string_literal: true %>
 
-<h1>New run</h1>
+<%= render(JetUi::Header::Component.new) do %>
+  <%= render(JetUi::Header::HeadingComponent.new) do %>
+    <%= render(JetUi::Header::TitleComponent.new) { "New run" } %>
+  <% end %>
 
-<%= form_with model: @run, url: runs_path do |form| %>
+  <%= render(JetUi::Header::ActionsComponent.new) do %>
+    <%= render(JetUi::Btn::Component.new(variant: :ghost, url: root_path)) { "Back to board" } %>
+  <% end %>
+<% end %>
+
+<%= render(JetUi::Card::Component.new(id: "new-run-card")) do %>
   <% if @run.errors.any? %>
-    <div id="error_explanation">
-      <ul>
+    <%= render(JetUi::Alert::Component.new(variant: :error, class: "mb-4")) do %>
+      <%= render(JetUi::Alert::TitleComponent.new) { "Couldn't create run" } %>
+      <ul class="list-disc pl-5 mt-2">
         <% @run.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
       </ul>
-    </div>
+    <% end %>
   <% end %>
 
-  <div>
-    <%= form.label :mission, "Mission" %>
-    <%= form.text_area :mission, required: true %>
-  </div>
+  <%= render(JetUi::Card::BodyComponent.new) do %>
+    <%= form_with model: @run, url: runs_path, class: "space-y-4" do |form| %>
+      <div class="field">
+        <%= form.label :mission, "Mission", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.text_area :mission, required: true, rows: 4, class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-ring)" %>
+      </div>
 
-  <div>
-    <%= form.label :pack_kind, "Pack kind" %>
-    <%= form.select :pack_kind, Run::PACK_KINDS %>
-  </div>
+      <div class="field">
+        <%= form.label :pack_kind, "Pack kind", class: "block text-sm font-medium mb-1.5" %>
+        <%= form.select :pack_kind, Run::PACK_KINDS, {}, class: "block w-full rounded-md border border-(--color-input) px-3 py-2 text-sm" %>
+      </div>
 
-  <%= form.submit "Create run" %>
+      <div class="pt-2">
+        <%= form.button "Create run", class: "btn btn-default btn-md" %>
+      </div>
+    <% end %>
+  <% end %>
 <% end %>
-
-<%= link_to "Back to board", root_path %>

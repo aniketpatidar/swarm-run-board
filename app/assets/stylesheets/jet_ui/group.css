@@ -1,0 +1,40 @@
+@layer theme, base, components, utilities;
+
+@layer components {
+  .ui_group {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .ui_group-sticky {
+    @apply gap-0;
+
+    > .btn:first-child,
+    > *:first-child .btn {
+      @apply rounded-r-none;
+    }
+
+    > .btn:last-child,
+    > *:last-child .btn {
+      @apply rounded-l-none;
+    }
+
+    > *:not(:last-child) .btn-outline,
+    > .btn-outline:not(:last-child) {
+      @apply border-r-0;
+    }
+
+    > *:not(:last-child) .btn-default,
+    > .btn-default:not(:last-child),
+    > *:not(:last-child) .btn-secondary,
+    > .btn-secondary:not(:last-child),
+    > *:not(:last-child) .btn-danger,
+    > .btn-danger:not(:last-child) {
+      @apply border-r border-r-surface/25;
+    }
+
+    > *:not(:first-child):not(:last-child) .btn,
+    > .btn:not(:first-child):not(:last-child) {
+      @apply rounded-none;
+    }
+  }
+}

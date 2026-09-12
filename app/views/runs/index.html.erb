@@ -1,10 +1,16 @@
 <%# frozen_string_literal: true %>
 
-<h1>Run board</h1>
+<%= render(JetUi::Header::Component.new) do %>
+  <%= render(JetUi::Header::HeadingComponent.new) do %>
+    <%= render(JetUi::Header::TitleComponent.new) { "Run board" } %>
+  <% end %>
 
-<p><%= link_to "New run", new_run_path %></p>
+  <%= render(JetUi::Header::ActionsComponent.new) do %>
+    <%= render(JetUi::Btn::Component.new(url: new_run_path)) { "New run" } %>
+  <% end %>
+<% end %>
 
-<table id="runs">
+<%= render(JetUi::Table::Component.new(id: "runs", hovered: true)) do %>
   <thead>
     <tr>
       <th>Mission</th>
@@ -14,8 +20,21 @@
     </tr>
   </thead>
   <tbody id="runs_rows">
-    <% @runs.each do |run| %>
-      <%= render run %>
+    <% if @runs.any? %>
+      <%= render partial: "runs/run", collection: @runs %>
+    <% else %>
+      <tr id="runs_empty">
+        <td colspan="4">
+          <%= render(JetUi::Empty::Component.new) do %>
+            <%= render(JetUi::Empty::IconComponent.new("list-bullet", size: 8)) %>
+            <h3 class="empty__title">No runs yet</h3>
+            <p class="text-zinc-500">Start your first swarm run and it will show up here.</p>
+            <%= render(JetUi::Empty::ActionsComponent.new) do %>
+              <%= render(JetUi::Btn::Component.new(variant: :outline, url: new_run_path)) { "New run" } %>
+            <% end %>
+          <% end %>
+        </td>
+      </tr>
     <% end %>
   </tbody>
-</table>
+<% end %>

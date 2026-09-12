@@ -10,6 +10,16 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "new renders the sign-in form in a card" do
+    get new_session_path
+    assert_response :success
+    assert_select ".card"
+    assert_select "form[action='/session']" do
+      assert_select "input[name='email_address']"
+      assert_select "input[name='password']"
+    end
+  end
+
   test "create with valid credentials" do
     post session_path, params: { email_address: @account.email_address, password: "password" }
 

@@ -1,8 +1,12 @@
 <%# frozen_string_literal: true %>
 
 <tr>
-  <td><%= link_to run.mission, run_path(run) %></td>
+  <td><%= link_to run.mission, run_path(run), class: "font-medium" %></td>
   <td><%= run.pack_kind %></td>
-  <td><%= run.status %></td>
+  <td>
+    <%= render(JetUi::Badge::Component.new(variant: run_status_badge_variant(run.status))) do %>
+      <%= run.status %>
+    <% end %>
+  </td>
   <td><time datetime="<%= run.started_at.iso8601 %>"><%= run.started_at.to_fs(:long) %></time></td>
 </tr>

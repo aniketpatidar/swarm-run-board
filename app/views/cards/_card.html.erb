@@ -1,7 +1,15 @@
-<li id="card_<%= card.id %>">
-  <span class="card-name"><%= card.name %></span>
-  <span class="card-role"><%= card.current_role %></span>
-  <% if card.advanceable? %>
-    <%= button_to "Advance", run_card_advancement_path(card.run, card) %>
+<%# frozen_string_literal: true %>
+
+<%= render(JetUi::List::ItemComponent.new(id: "card_#{card.id}")) do %>
+  <%= render(JetUi::List::ContentComponent.new) do %>
+    <p class="font-medium leading-tight"><%= card.name %></p>
   <% end %>
-</li>
+
+  <%= render(JetUi::Badge::Component.new(variant: card_role_badge_variant(card.current_role))) { card.current_role } %>
+
+  <% if card.advanceable? %>
+    <%= render(JetUi::List::ActionComponent.new) do %>
+      <%= render(JetUi::Btn::Component.new(variant: :outline, size: :sm, url: run_card_advancement_path(card.run, card), method: :post)) { "Advance" } %>
+    <% end %>
+  <% end %>
+<% end %>

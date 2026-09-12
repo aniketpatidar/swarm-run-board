@@ -10,3 +10,5 @@
 /public/assets
 /public/packs
 /.DS_Store
+/app/assets/builds/*
+!/app/assets/builds/.keep

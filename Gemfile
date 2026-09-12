@@ -79,3 +79,7 @@ group :test do
 end
 
 gem "rantly", "~> 3.0", group: :test
+
+gem "view_component", "~> 4.15"
+gem "tailwindcss-rails", "~> 4.6"
+gem "jet_ui", "~> 0.3.0"

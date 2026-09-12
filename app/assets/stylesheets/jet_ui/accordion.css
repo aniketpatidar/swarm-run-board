@@ -1,0 +1,24 @@
+@layer theme, base, components, utilities;
+
+@layer components {
+  .accordion {
+    @apply w-full;
+  }
+
+  .accordion__summary {
+    @apply flex items-center justify-between gap-3 py-3.5 font-medium cursor-pointer;
+  }
+
+  .accordion__icon {
+    @apply size-4;
+    transition: transform 0.15s ease;
+  }
+
+  details[open] .accordion__icon {
+    transform: rotate(-180deg);
+  }
+
+  .accordion__body {
+    @apply pb-3.5;
+  }
+}

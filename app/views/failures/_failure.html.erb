@@ -1,9 +1,20 @@
-<li id="failure_<%= failure.id %>">
-  <span class="failure-title"><%= failure.title %></span>
-  <span class="failure-severity"><%= failure.severity %></span>
-  <% if failure.card %>
-    <%= link_to failure.card.name, run_path(run, anchor: "card_#{failure.card.id}") %>
+<%# frozen_string_literal: true %>
+
+<%= render(JetUi::List::ItemComponent.new(id: "failure_#{failure.id}")) do %>
+  <%= render(JetUi::List::ContentComponent.new) do %>
+    <p class="font-medium leading-tight"><%= failure.title %></p>
+    <% if failure.card %>
+      <p class="mt-0.5 text-sm">
+        <%= link_to failure.card.name, run_path(run, anchor: "card_#{failure.card.id}"),
+          class: "text-sm font-medium text-(--color-link) hover:text-(--color-link-hover)" %>
+      </p>
+    <% end %>
   <% end %>
-  <%= button_to "Resolve", run_failure_resolution_path(run, failure) %>
-  <%= button_to "Reassign", run_failure_reassignment_path(run, failure) %>
-</li>
+
+  <%= render(JetUi::Badge::Component.new(variant: failure_severity_badge_variant(failure.severity))) { failure.severity } %>
+
+  <%= render(JetUi::List::ActionComponent.new) do %>
+    <%= render(JetUi::Btn::Component.new(variant: :outline, size: :sm, url: run_failure_resolution_path(run, failure), method: :post)) { "Resolve" } %>
+    <%= render(JetUi::Btn::Component.new(variant: :ghost, size: :sm, url: run_failure_reassignment_path(run, failure), method: :post)) { "Reassign" } %>
+  <% end %>
+<% end %>

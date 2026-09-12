@@ -1,3 +1,4 @@
 <%# frozen_string_literal: true %>
 
+<%= turbo_stream.remove "runs_empty" if @run.account.runs.count == 1 %>
 <%= turbo_stream.append "runs_rows", render(@run) %>

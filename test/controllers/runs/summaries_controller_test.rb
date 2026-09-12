@@ -23,6 +23,8 @@ class Runs::SummariesControllerTest < ActionDispatch::IntegrationTest
 
     get run_summary_path(run)
     assert_response :success
+    assert_select ".header__title", text: /Ship alpha/
+    assert_select "#run_summary .card"
     assert_select "#run_summary" do
       assert_select "dt", text: "Status"
       assert_select "dd", text: "Completed"

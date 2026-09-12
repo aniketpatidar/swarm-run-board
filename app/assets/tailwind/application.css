@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* JetUi stylesheet vendored from the jet_ui gem (see app/assets/stylesheets/jet_ui.css)
+   so the Tailwind CLI can resolve it regardless of gem install location. */
+@import "../stylesheets/jet_ui.css";
