@@ -6,6 +6,8 @@ module ApplicationHelper
     "aborted" => :warning
   }.freeze
 
+  module_function
+
   def run_status_badge_variant(status)
     RUN_STATUS_BADGES.fetch(status, :default)
   end
