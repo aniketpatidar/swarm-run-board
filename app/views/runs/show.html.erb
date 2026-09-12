@@ -2,7 +2,7 @@
 
 <%= render(JetUi::Header::Component.new) do %>
   <%= render(JetUi::Header::HeadingComponent.new) do %>
-    <%= render(JetUi::Header::TitleComponent.new) { @run.mission } %>
+    <%= render(JetUi::Header::TitleComponent.new(class: "[overflow-wrap:anywhere]")) { @run.mission } %>
     <%= render(JetUi::Header::SubtitleComponent.new) do %>
       <%= render(JetUi::Badge::Component.new(variant: run_status_badge_variant(@run.status))) { @run.status } %>
       <span class="header__subtitle-meta">

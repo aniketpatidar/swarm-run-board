@@ -1,7 +1,9 @@
 <%# frozen_string_literal: true %>
 
 <tr>
-  <td><%= link_to run.mission, run_path(run), class: "font-medium" %></td>
+  <td class="[overflow-wrap:anywhere]">
+    <%= link_to run.mission, run_path(run), class: "font-medium" %>
+  </td>
   <td><%= run.pack_kind %></td>
   <td>
     <%= render(JetUi::Badge::Component.new(variant: run_status_badge_variant(run.status))) do %>

@@ -2,7 +2,7 @@
 
 <%= render(JetUi::Header::Component.new) do %>
   <%= render(JetUi::Header::HeadingComponent.new) do %>
-    <%= render(JetUi::Header::TitleComponent.new) { @run.mission } %>
+    <%= render(JetUi::Header::TitleComponent.new(class: "[overflow-wrap:anywhere]")) { @run.mission } %>
     <%= render(JetUi::Header::SubtitleComponent.new) { "Summary" } %>
   <% end %>
 

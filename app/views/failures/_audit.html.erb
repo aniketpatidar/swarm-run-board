@@ -9,11 +9,11 @@
     <% if run.audit_entries.any? %>
       <%= render(JetUi::List::Component.new(variant: :divided)) do %>
         <% run.audit_entries.order(created_at: :desc, id: :desc).each do |entry| %>
-          <li class="list__item">
+          <%= render(JetUi::List::ItemComponent.new) do %>
             <p class="text-sm break-words">
               <strong class="font-semibold"><%= entry.action %></strong>: <%= entry.subject %>
             </p>
-          </li>
+          <% end %>
         <% end %>
       <% end %>
     <% else %>
